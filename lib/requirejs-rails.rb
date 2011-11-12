@@ -1,0 +1,2 @@
+module RequirejsRails
+end
