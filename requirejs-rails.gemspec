@@ -13,12 +13,13 @@ Gem::Specification.new do |s|
   s.summary     = "Use RequireJS with the Rails 3 Asset Pipeline"
   s.description = "This gem provides RequireJS support for your Rails 3 application."
 
-  git_files = `git ls-files`.split("\n").partition { |f| f =~ /^test/ }
-  s.test_files = git_files[0]
-  s.files = git_files[1]
+  git_test_files, git_files = `git ls-files`.split("\n").partition { |f| f =~ /^test/ }
+  s.test_files = git_test_files
+  s.files = git_files
   s.require_path = 'lib'  
 
   s.add_dependency "rails", "~> 3.1.1"
+  s.requirements << "If needed, jQuery should be v1.7 or greater (jquery-rails >= 1.0.17)."
 
   s.add_development_dependency "sqlite3"
 end
