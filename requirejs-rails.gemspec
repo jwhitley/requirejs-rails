@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.email       = ["whitley@bangpath.org"]
   s.homepage    = "http://github.com/jwhitley/requirejs-rails"
   s.summary     = "Use RequireJS with the Rails 3 Asset Pipeline"
-  s.description = "This gem provides RequireJS and r.js compilation support for your Rails 3 application."
+  s.description = "This gem provides RequireJS support for your Rails 3 application."
 
   git_files = `git ls-files`.split("\n").partition { |f| f =~ /^test/ }
   s.test_files = git_files[0]
