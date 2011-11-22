@@ -1,4 +1,1 @@
-module Requirejs
-  module Rails
-  end
-end
+require 'requirejs/rails'
