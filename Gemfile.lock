@@ -1,8 +1,8 @@
 PATH
   remote: .
   specs:
-    requirejs-rails (0.0.1)
-      rails (~> 3.1.1)
+    requirejs-rails (0.0.2)
+      railties (~> 3.1.1)
 
 GEM
   remote: http://rubygems.org/
@@ -98,5 +98,6 @@ PLATFORMS
 DEPENDENCIES
   execjs
   jquery-rails
+  rails (~> 3.1.1)
   requirejs-rails!
   sqlite3

@@ -7,6 +7,7 @@ class RequirejsRailsTest < ActiveSupport::TestCase
   test "truth" do
     assert_kind_of Module, Requirejs
     assert_kind_of Module, Requirejs::Rails
+    assert_kind_of Class, Requirejs::Rails::Engine
   end
   
   test "require.js version" do
