@@ -1,0 +1,28 @@
+//Load the requirejs optimizer
+var requirejs = require('<%= rjs_path %>'),
+    //Set up basic config, include config that is
+    //common to all the optimize() calls.
+    basConfig = <%= JSON.pretty_generate(build_config) %>;
+
+// Function used to mix in baseConfig to a new config target
+function mix(target) {
+    for (var prop in basConfig) {
+        if (basConfig.hasOwnProperty(prop)) {
+            target[prop] = basConfig[prop];
+        }
+    }
+    return target;
+}
+
+//Now do a series of builds of individual files, using the args suggested by:
+//http://requirejs.org/docs/optimization.html#onejs
+
+<% build_config['modules'].each do |m| %>
+requirejs.optimize(mix({
+    name: "<%= m['name'] %>",
+		<% if m['includes'] %>
+    include: [<%= m['includes'].map {|i| "'#{i}'" }.join(", ") %>],
+		<% end %>
+    out: '<%= module_path_for m['name'] %>'
+}));
+<% end %>
