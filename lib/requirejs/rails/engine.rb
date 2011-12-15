@@ -16,7 +16,11 @@ module Requirejs
         end
         config.requirejs.manifest_path = Pathname.new(path)
         
-        config.assets.precompile << /require\.js$/ if ::Rails.env == "production"
+        config.requirejs.precompile = [/require\.js$/, /order\.js$/]
+
+        if ::Rails.env == "production"
+          config.assets.precompile += config.requirejs.precompile
+        end
       end
       
       initializer "requirejs.manifest", :after => "sprockets.environment" do |app|
