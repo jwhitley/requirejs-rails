@@ -102,7 +102,7 @@ EOM
                      "requirejs:precompile:prepare_source",
                      "requirejs:precompile:generate_rjs_driver",
                      "requirejs:precompile:run_rjs"]
-    task :stage2 => ["requirejs:precompile:digestify"]
+    task :stage2 => ["requirejs:precompile:digestify_and_compress"]
     
     # Copy all assets to tmp/assets
     task :prepare_source => ["requirejs:setup", 
@@ -135,7 +135,7 @@ EOM
     
     # Copy each built asset, identified by a named module in the 
     # build config, to its Sprockets digestified name.
-    task :digestify => ["requirejs:setup"] do
+    task :digestify_and_compress => ["requirejs:setup"] do
       requirejs.config.build_config['modules'].each do |m|
         asset_name = "#{m['name']}.js"
         built_asset_path = requirejs.config.target_dir + asset_name
@@ -143,10 +143,19 @@ EOM
         digest_asset_path = requirejs.config.target_dir + digest_name
         requirejs.manifest[asset_name] = digest_name
         FileUtils.cp built_asset_path, digest_asset_path
+
+        # Create the compressed versions
+        File.open("#{built_asset_path}.gz",'wb') do |f|
+          zgw = Zlib::GzipWriter.new(f, Zlib::BEST_COMPRESSION)
+          zgw.write built_asset_path.read
+          zgw.close
+        end
+        FileUtils.cp "#{built_asset_path}.gz", "#{digest_asset_path}.gz"
+
         requirejs.config.manifest_path.open('wb') do |f|
           YAML.dump(requirejs.manifest,f)
         end
-      end      
+      end    
     end
   end
 
