@@ -3,9 +3,36 @@ require 'requirejs/rails/config'
 
 require 'fileutils'
 require 'pathname'
+require 'sprockets/digest'
 require 'tempfile'
 
 require 'active_support/ordered_options'
+
+# Prevent Sprockets::Bootstrap from making the environment immutable,
+# as we need to manipulate the environment paths before the asset build.
+#
+# Without this, task requirejs:assets:purge_js throws an exception from 
+# Sprockets::Index#expire_index!, which is in response to any mutating
+# method call.
+#
+if Rails.env == "production"
+  require 'sprockets/bootstrap'
+  module ::Sprockets
+    class Bootstrap
+      alias_method :orig_run, :run
+      def run(*args)
+        config = @app.config
+        saved_config_assets_digest = config.assets.digest
+        begin
+          config.assets.digest = false
+          orig_run(*args)
+        ensure
+          config.assets.digest = saved_config_assets_digest
+        end
+      end
+    end
+  end
+end
 
 namespace :requirejs do
   
@@ -34,13 +61,13 @@ namespace :requirejs do
     FileUtils.remove_entry_secure(requirejs.config.source_dir, true)
     FileUtils.remove_entry_secure(requirejs.driver_path, true)
   end
-  
-  task :setup => :environment do
+
+  task :setup => ["environment"] do
     unless Rails.application.config.assets.enabled
       warn "Cannot precompile assets if sprockets is disabled. Please set config.assets.enabled to true"
       exit
     end
-
+    
     # Ensure that action view is loaded and the appropriate
     # sprockets hooks get executed
     _ = ActionView::Base
@@ -50,7 +77,7 @@ namespace :requirejs do
     requirejs.env_paths = requirejs.env.paths.dup
     requirejs.config = Rails.application.config.requirejs
     requirejs.builder = Requirejs::Rails::Builder.new(requirejs.config)
-    requirejs.orig_compressor = Rails.application.assets.js_compressor
+    requirejs.manifest = {}
   end
   
   task :test_node do
@@ -67,13 +94,15 @@ EOM
   end
   
   namespace :precompile do
+    # stage1 must NOT be run in the production environment
+    #
     # Depend on test_node first here so we'll fail early and hard if 
     # node isn't available.
-    task :all => ["requirejs:test_node",
-                  "requirejs:precompile:prepare_source",
-                  "requirejs:precompile:generate_rjs_driver",
-                  "requirejs:precompile:run_rjs",
-                  "requirejs:precompile:digestify"]
+    task :stage1 => ["requirejs:test_node",
+                     "requirejs:precompile:prepare_source",
+                     "requirejs:precompile:generate_rjs_driver",
+                     "requirejs:precompile:run_rjs"]
+    task :stage2 => ["requirejs:precompile:digestify"]
     
     # Copy all assets to tmp/assets
     task :prepare_source => ["requirejs:setup", 
@@ -108,12 +137,17 @@ EOM
     
     # Copy each built asset, identified by a named module in the 
     # build config, to its Sprockets digestified name.
-    task :digestify do
+    task :digestify => ["requirejs:setup"] do
       requirejs.config.build_config['modules'].each do |m|
-        asset = requirejs.env.find_asset(m['name'])
-        built_asset_name = requirejs.config.target_dir + asset.logical_path
-        digest_asset_name = requirejs.config.target_dir + asset.digest_path
-        FileUtils.cp built_asset_name, digest_asset_name
+        asset_name = "#{m['name']}.js"
+        built_asset_path = requirejs.config.target_dir + asset_name
+        digest_name = asset_name.sub(/\.(\w+)$/) { |ext| "-#{requirejs.builder.digest_for(built_asset_path)}#{ext}" }
+        digest_asset_path = requirejs.config.target_dir + digest_name
+        requirejs.manifest[asset_name] = digest_name
+        FileUtils.cp built_asset_path, digest_asset_path
+        requirejs.config.manifest_path.open('wb') do |f|
+          YAML.dump(requirejs.manifest,f)
+        end
       end      
     end
   end
@@ -122,7 +156,7 @@ EOM
   task :precompile do
     invoke_or_reboot_rake_task "requirejs:precompile:all"
   end
-  
+
   # We remove all .js assets from the Rails Asset Pipeline when 
   # precompiling, as those are handled by r.js. Conversely, r.js 
   # only sees .js assets. For now, this is by path convention; any
@@ -131,17 +165,16 @@ EOM
   # problems.
   namespace :assets do
     task :disable_compressor do
-      # Save then disable asset compression
-      Rails.application.assets.js_compressor = nil
+      # Rails.application.assets.js_compressor = nil
     end
 
     task :enable_compressor do
-      Rails.application.assets.js_compressor = requirejs.orig_compressor
+      # Rails.application.assets.js_compressor = requirejs.orig_compressor
     end
 
     # Purge all ".../javascripts" directories from the asset paths
     task :purge_js => ["requirejs:setup"] do
-      new_paths = requirejs.env_paths.dup.delete_if { |p| p =~ /javascripts$/ }
+      new_paths = requirejs.env_paths.dup.delete_if { |p| p =~ /javascripts$/ && p !~ /requirejs-rails/ }
       requirejs.env.clear_paths
       new_paths.each { |p| requirejs.env.append_path(p) }
     end
@@ -155,8 +188,9 @@ EOM
   end
 end
 
-task "assets:precompile:primary" => ["requirejs:assets:purge_js", 
+task "assets:precompile:primary" => ["requirejs:precompile:stage2", 
+                                     "requirejs:assets:purge_js", 
                                      "requirejs:assets:enable_compressor"]
 task "assets:precompile:nondigest" => ["requirejs:assets:purge_js", 
                                        "requirejs:assets:enable_compressor"]
-task "assets:precompile:all" => ["requirejs:precompile:all"]
+task "assets:precompile" => ["requirejs:precompile:stage1"]

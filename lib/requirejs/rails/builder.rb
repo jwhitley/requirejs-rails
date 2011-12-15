@@ -4,16 +4,19 @@ require 'pathname'
 require 'ostruct'
 
 module Requirejs::Rails
-  # An instance of this class provides the context for generation of 
-  # the r.js builder script.  See also: lib/tasks/builder.js.erb
-  # in this project.
   class Builder
+    # config should be an instance of Requirejs::Rails::Config
+    
     def initialize(config)
       @config = config
     end
     
     def build      
       @config.tmp_dir
+    end
+
+    def digest_for(path)
+      Rails.application.assets.file_digest(path).hexdigest
     end
 
     def generate_rjs_driver
