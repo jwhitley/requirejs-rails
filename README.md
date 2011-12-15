@@ -132,7 +132,6 @@ See [the Changelog](CHANGELOG.md) for other details
 ## TODOs
 
 - Sample app, including jQuery usage
-- Support RequireJS precompilation via r.js (see issue #1)
 - Generator and/or template support.. ?
 
 ----
