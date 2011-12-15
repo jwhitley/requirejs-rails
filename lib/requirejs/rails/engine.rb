@@ -16,7 +16,7 @@ module Requirejs
         end
         config.requirejs.manifest_path = Pathname.new(path)
         
-        config.requirejs.precompile = [/require\.js$/, /order\.js$/]
+        config.requirejs.precompile = [/require\.js$/]
 
         if ::Rails.env == "production"
           config.assets.precompile += config.requirejs.precompile
