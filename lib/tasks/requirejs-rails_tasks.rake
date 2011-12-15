@@ -107,8 +107,7 @@ EOM
     # Copy all assets to tmp/assets
     task :prepare_source => ["requirejs:setup", 
                              "requirejs:clean", 
-                             "requirejs:assets:keep_js",
-                             "requirejs:assets:disable_compressor"] do
+                             "requirejs:assets:keep_js"] do
       requirejs.config.source_dir.mkpath
       requirejs.env.each_logical_path do |logical_path|
         if asset = requirejs.env.find_asset(logical_path)
@@ -125,8 +124,7 @@ EOM
     end
 
     task :run_rjs => ["requirejs:setup", 
-                      "requirejs:test_node", 
-                      "requirejs:assets:disable_compressor"] do
+                      "requirejs:test_node"] do
       requirejs.config.target_dir.mkpath
 
       `node #{requirejs.config.driver_path}`
@@ -164,14 +162,6 @@ EOM
   # your stylesheets directory, then heaven help you. You've got bigger
   # problems.
   namespace :assets do
-    task :disable_compressor do
-      # Rails.application.assets.js_compressor = nil
-    end
-
-    task :enable_compressor do
-      # Rails.application.assets.js_compressor = requirejs.orig_compressor
-    end
-
     # Purge all ".../javascripts" directories from the asset paths
     task :purge_js => ["requirejs:setup"] do
       new_paths = requirejs.env_paths.dup.delete_if { |p| p =~ /javascripts$/ && p !~ /requirejs-rails/ }
@@ -189,8 +179,6 @@ EOM
 end
 
 task "assets:precompile:primary" => ["requirejs:precompile:stage2", 
-                                     "requirejs:assets:purge_js", 
-                                     "requirejs:assets:enable_compressor"]
-task "assets:precompile:nondigest" => ["requirejs:assets:purge_js", 
-                                       "requirejs:assets:enable_compressor"]
+                                     "requirejs:assets:purge_js"]
+task "assets:precompile:nondigest" => ["requirejs:assets:purge_js"]
 task "assets:precompile" => ["requirejs:precompile:stage1"]
