@@ -21,7 +21,7 @@ Integrates [RequireJS](http://requirejs.org/) into the Rails 3 Asset Pipeline.
     <html>
     <head>
       <title>Frobnitz Online</title>
-      <%= stylesheet_link_tag    "application" %>
+      <%= stylesheet_link_tag   "application" %>
       <%= requirejs_include_tag "application" %>
       <%= csrf_meta_tags %>
       <meta charset="utf-8">
