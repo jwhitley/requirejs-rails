@@ -1,7 +1,16 @@
 require 'requirejs/error'
 
 module RequirejsHelper
-  def requirejs_include_tag(tag=nil)
+  def _data_main(name)
+    if name
+      name += ".js" unless name =~ /\.js$/
+      %Q{data-main="#{javascript_path(name)}"}
+    else
+      ""
+    end
+  end
+
+  def requirejs_include_tag(name=nil)
     html = ""
     
     if controller.requirejs_included
@@ -11,13 +20,9 @@ module RequirejsHelper
     <script>
       var require = #{Rails.application.config.requirejs.run_config_json};
     </script>
-    #{javascript_include_tag "require"}
+    <script #{_data_main name} src="#{javascript_path 'require.js'}"></script>
     HTML
     controller.requirejs_included = true
-
-    if tag
-      html << javascript_include_tag(tag)
-    end
     html.html_safe
   end
 end
