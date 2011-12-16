@@ -35,8 +35,7 @@ class RequirejsHelperTest < ActionView::TestCase
   
   test "requirejs_include_tag_with_param" do
     render :text => wrap(requirejs_include_tag("application"))
-    assert_select "script:nth-of-type(2)[src^=/javascripts/require.js]", :count => 1
-    assert_select "script:last-of-type[src^=/javascripts/application.js]", :count => 1
+    assert_select "script:last-of-type[src^=/javascripts/require.js][data-main^=/javascripts/application.js]", :count => 1
   end
   
   test "requirejs_include_tag can appear only once" do
