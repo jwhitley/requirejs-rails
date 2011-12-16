@@ -1,3 +1,21 @@
+# v0.5.1
+
+- This is a quick turn to fix an issue that could trigger an Anonymous mismatched define() error from require.js and/or r.js.
+
+    The preferred way to use the helper tag is now with an argument, like
+    so:
+
+    ```erb
+    <%= requirejs_include_tag "application" %>
+    ```
+
+    This usage ensures that the above helper will correctly generate a
+    data-main attribute for the script tag.  The requirejs_include_tag
+    helper still works without an argument, and won't generate data-main
+    in that case.
+
+    Thanks to Andrew de Andrade for the catch.
+
 # v0.5.0
 
 - Precompilation via `rake assets:precompile` is now implemented.
