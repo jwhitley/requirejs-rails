@@ -14,7 +14,7 @@ Integrates [RequireJS](http://requirejs.org/) into the Rails 3 Asset Pipeline.
 
 2. Remove all Sprockets directives such as `//= require jquery` from `application.js` and elsewhere.  Instead establish JavaScript dependencies using AMD-style `define()` and `require()` calls.
 
-3. Use `requirejs_include_tag` at the top-level of your app's layout(s).  `javascript_include_tag` should be used to reference your top-level JavaScript modules.  Other modules will be pulled in dynamically by `require.js` in development and by `r.js` for optimized production builds.  Here's a basic `app/views/layouts/application.html.erb` modified for `requirejs-rails`:
+3. Use `requirejs_include_tag` at the top-level of your app's layout(s).  Other modules will be pulled in dynamically by `require.js` in development and for production builds optimized by `r.js`.  Here's a basic `app/views/layouts/application.html.erb` modified for `requirejs-rails`:
 
     ```erb
     <!DOCTYPE html>
@@ -22,8 +22,7 @@ Integrates [RequireJS](http://requirejs.org/) into the Rails 3 Asset Pipeline.
     <head>
       <title>Frobnitz Online</title>
       <%= stylesheet_link_tag    "application" %>
-      <%= requirejs_include_tag %>
-      <%= javascript_include_tag "application" %>
+      <%= requirejs_include_tag "application" %>
       <%= csrf_meta_tags %>
       <meta charset="utf-8">
     </head>
@@ -121,6 +120,16 @@ Underscore version 1.2.2 or later has integrated AMD support.  Get it from [Unde
 ## Changes
 
 Usage changes that impact folks upgrading along the 0.x series are documented here.
+
+### v0.5.1
+
+- `requirejs_include_tag` now generates a data-main attribute if given an argument, ala:
+
+    ```erb
+	<%= requirejs_include_tag "application" %>
+	```
+
+    This usage is preferred to using a separate `javascript_include_tag`, which will produce errors from require.js or r.js if the included script uses define anonymously, or not at all.
 
 ### v0.5.0
 
