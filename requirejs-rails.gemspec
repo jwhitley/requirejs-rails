@@ -22,5 +22,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rails", "~> 3.1.1"
   s.add_development_dependency "sqlite3"
 
+  s.requirements << "node.js is required for 'rake assets:precompile', used to run the r.js build"
   s.requirements << "If needed, jQuery should be v1.7 or greater (jquery-rails >= 1.0.17)."
 end
