@@ -20,7 +20,7 @@ end
 class RequirejsHelperTest < ActionView::TestCase
   
   def setup
-    RequirejsHelper.requirejs_included = false
+    controller.requirejs_included = false
   end
   
   def wrap(tag)

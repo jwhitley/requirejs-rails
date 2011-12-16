@@ -6,6 +6,14 @@ module Requirejs
   module Rails
     class Engine < ::Rails::Engine
 
+      initializer "requirejs.tag_included_state" do |app|
+        ActiveSupport.on_load(:action_controller) do
+          ::ActionController::Base.class_eval do
+            attr_accessor :requirejs_included
+          end
+        end
+      end
+
       initializer "requirejs.config" do |app|
         config = app.config
         config.requirejs = Requirejs::Rails::Config.new(app)
