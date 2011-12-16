@@ -1,3 +1,10 @@
+# v0.5.0
+
+- Precompilation via `rake assets:precompile` is now implemented.
+- gem configuration via application.js is deprecated.
+- Application-specific require.js configuration lives in `config/requirejs.yml`.
+- See [README](README.md) for updated usage details.
+
 # v0.0.2
 
 - Fixed stupid problems with Rails::Engine instantiation.
