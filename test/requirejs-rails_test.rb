@@ -13,7 +13,7 @@ class RequirejsRailsTest < ActiveSupport::TestCase
   test "require.js version" do
     require_js = Pathname.new(__FILE__+'/../../vendor/assets/javascripts/require.js').cleanpath.read
     context = ExecJS.compile(require_js)
-    assert_equal "1.0.2", context.eval("require.version")
+    assert_equal "1.0.3", context.eval("require.version")
   end
 end
 
