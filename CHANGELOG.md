@@ -1,3 +1,7 @@
+# v0.5.2
+
+- Upgrade to RequireJS and r.js 1.0.3
+
 # v0.5.1
 
 - This is a quick turn to fix an issue that could trigger an Anonymous mismatched define() error from require.js and/or r.js.
