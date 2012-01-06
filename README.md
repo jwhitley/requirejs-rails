@@ -111,7 +111,9 @@ define ['jquery'], ($) ->
 
 ### Backbone.js
 
-Backbone AMD support is underway.  See pull request documentcloud/backbone#710 for details.  In the meantime, you can download [Backbone 0.5.3 with AMD support](https://github.com/jrburke/backbone/raw/optamd3/backbone.js) from [jrburke's optamd3 branch](https://github.com/jrburke/backbone/tree/optamd3).  Backbone's module name is `backbone`.
+**DO NOT USE vanilla Backbone 0.5.3 with require.js!**
+
+Backbone with AMD support hasn't been released yet.  In the meantime, you can download [Backbone 0.5.3 with AMD support](https://github.com/jrburke/backbone/raw/optamd3/backbone.js) from [jrburke's optamd3 branch](https://github.com/jrburke/backbone/tree/optamd3).  See pull request [documentcloud/backbone#710](https://github.com/documentcloud/backbone/pull/710) for details.  Backbone's module name is `backbone`.
 
 ### Underscore.js
 
