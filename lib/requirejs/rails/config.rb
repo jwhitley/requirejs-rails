@@ -32,7 +32,7 @@ module Requirejs::Rails
 
       self.run_config = {
         "baseUrl" => "/assets",
-        "modules" => [ { name: 'application' } ]
+        "modules" => [ { 'name' => 'application' } ]
       }
       self.run_config.merge!(self.user_config)
       self.run_config_json = self.run_config.to_json
@@ -44,9 +44,9 @@ module Requirejs::Rails
     def module_path_for(name)
       self.target_dir+(name+'.js')
     end
-    
+
     def get_binding
       return binding()
-    end    
+    end
   end
 end
