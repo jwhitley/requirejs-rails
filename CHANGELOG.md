@@ -1,3 +1,9 @@
+# v0.5.3
+
+- Upgrade to RequireJS and r.js 1.0.4
+- Pulled #22, fix for asset compliation failure with no config/requirejs.yml.
+  Thanks @arehberg!
+
 # v0.5.2
 
 - Upgrade to RequireJS and r.js 1.0.3
