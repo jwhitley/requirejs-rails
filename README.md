@@ -117,7 +117,9 @@ Backbone with AMD support hasn't been released yet.  In the meantime, you can do
 
 ### Underscore.js
 
-Underscore version 1.2.2 or later has integrated AMD support.  Get it from [Underscore.js' homepage](http://documentcloud.github.com/underscore/). Underscore's module name is `underscore`.
+Underscore version 1.2.x, 1.2.2 or later has integrated AMD support.  Get it from [Underscore.js' homepage](http://documentcloud.github.com/underscore/). Underscore's module name is `underscore`.
+
+**IMPORTANT:** Underscore has **removed** AMD support again in the 1.3.x series.  Please consult the [requirejs mailing list](http://groups.google.com/group/requirejs/) for the current recommended solution.
 
 ## Changes
 
