@@ -18,9 +18,13 @@ var module_specs = [
 <% build_config['modules'].each do |m| %>
   {
     name: "<%= m['name'] %>",
-		<% if m['includes'] %>
-    include: [<%= m['includes'].map {|i| "'#{i}'" }.join(", ") %>],
+		<% if m['include'] %>
+    include: [<%= m['include'].map {|i| "'#{i}'" }.join(", ") %>],
 		<% end %>
+		<% if m['exclude'] %>
+    exclude: [<%= m['exclude'].map {|i| "'#{i}'" }.join(", ") %>],
+		<% end %>
+
     out: '<%= module_path_for m['name'] %>'
   },
 <% end %>
