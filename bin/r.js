@@ -1,5 +1,5 @@
 /**
- * @license r.js 1.0.4 Copyright (c) 2010-2011, The Dojo Foundation All Rights Reserved.
+ * @license r.js 1.0.5 Copyright (c) 2010-2012, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
  * see: http://github.com/jrburke/requirejs for details
  */
@@ -20,9 +20,10 @@ var requirejs, require, define;
 
     var fileName, env, fs, vm, path, exec, rhinoContext, dir, nodeRequire,
         nodeDefine, exists, reqMain, loadedOptimizedLib,
-        version = '1.0.4',
+        version = '1.0.5',
         jsSuffixRegExp = /\.js$/,
         commandOption = '',
+        useLibLoaded = {},
         //Used by jslib/rhino/args.js
         rhinoArgs = args,
         readFile = typeof readFileFunc !== 'undefined' ? readFileFunc : null;
@@ -101,19 +102,17 @@ var requirejs, require, define;
     }
 
     /** vim: et:ts=4:sw=4:sts=4
- * @license RequireJS 1.0.4 Copyright (c) 2010-2011, The Dojo Foundation All Rights Reserved.
+ * @license RequireJS 1.0.5 Copyright (c) 2010-2012, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
  * see: http://github.com/jrburke/requirejs for details
  */
 /*jslint strict: false, plusplus: false, sub: true */
-/*global window: false, navigator: false, document: false, importScripts: false,
-  jQuery: false, clearInterval: false, setInterval: false, self: false,
-  setTimeout: false, opera: false */
+/*global window, navigator, document, importScripts, jQuery, setTimeout, opera */
 
 
 (function () {
     //Change this version number for each release.
-    var version = "1.0.4",
+    var version = "1.0.5",
         commentRegExp = /(\/\*([\s\S]*?)\*\/|([^:]|^)\/\/(.*)$)/mg,
         cjsRequireRegExp = /require\(\s*["']([^'"\s]+)["']\s*\)/g,
         currDirRegExp = /^\.\//,
@@ -139,8 +138,13 @@ var requirejs, require, define;
         interactiveScript = null,
         checkLoadedDepth = 0,
         useInteractive = false,
+        reservedDependencies = {
+            require: true,
+            module: true,
+            exports: true
+        },
         req, cfg = {}, currentlyAddingScript, s, head, baseElement, scripts, script,
-        src, subPath, mainScript, dataMain, i, ctx, jQueryCheck, checkLoadedTimeoutId;
+        src, subPath, mainScript, dataMain, globalI, ctx, jQueryCheck, checkLoadedTimeoutId;
 
     function isFunction(it) {
         return ostring.call(it) === "[object Function]";
@@ -493,8 +497,8 @@ var requirejs, require, define;
          * per module because of the implication of path mappings that may
          * need to be relative to the module name.
          */
-        function makeRequire(relModuleMap, enableBuildCallback) {
-            var modRequire = makeContextModuleFunc(context.require, relModuleMap, enableBuildCallback);
+        function makeRequire(relModuleMap, enableBuildCallback, altRequire) {
+            var modRequire = makeContextModuleFunc(altRequire || context.require, relModuleMap, enableBuildCallback);
 
             mixin(modRequire, {
                 nameToUrl: makeContextModuleFunc(context.nameToUrl, relModuleMap),
@@ -709,7 +713,22 @@ var requirejs, require, define;
                 //Use parentName here since the plugin's name is not reliable,
                 //could be some weird string with no path that actually wants to
                 //reference the parentName's path.
-                plugin.load(name, makeRequire(map.parentMap, true), load, config);
+                plugin.load(name, makeRequire(map.parentMap, true, function (deps, cb) {
+                    var moduleDeps = [],
+                        i, dep, depMap;
+                    //Convert deps to full names and hold on to them
+                    //for reference later, when figuring out if they
+                    //are blocked by a circular dependency.
+                    for (i = 0; (dep = deps[i]); i++) {
+                        depMap = makeModuleMap(dep, map.parentMap);
+                        deps[i] = depMap.fullName;
+                        if (!depMap.prefix) {
+                            moduleDeps.push(deps[i]);
+                        }
+                    }
+                    depManager.moduleDeps = (depManager.moduleDeps || []).concat(moduleDeps);
+                    return context.require(deps, cb);
+                }), load, config);
             }
         }
 
@@ -976,14 +995,61 @@ var requirejs, require, define;
             }
         };
 
-        function forceExec(manager, traced) {
-            if (manager.isDone) {
-                return undefined;
+        function findCycle(manager, traced) {
+            var fullName = manager.map.fullName,
+                depArray = manager.depArray,
+                fullyLoaded = true,
+                i, depName, depManager, result;
+
+            if (manager.isDone || !fullName || !loaded[fullName]) {
+                return result;
             }
 
+            //Found the cycle.
+            if (traced[fullName]) {
+                return manager;
+            }
+
+            traced[fullName] = true;
+
+            //Trace through the dependencies.
+            if (depArray) {
+                for (i = 0; i < depArray.length; i++) {
+                    //Some array members may be null, like if a trailing comma
+                    //IE, so do the explicit [i] access and check if it has a value.
+                    depName = depArray[i];
+                    if (!loaded[depName] && !reservedDependencies[depName]) {
+                        fullyLoaded = false;
+                        break;
+                    }
+                    depManager = waiting[depName];
+                    if (depManager && !depManager.isDone && loaded[depName]) {
+                        result = findCycle(depManager, traced);
+                        if (result) {
+                            break;
+                        }
+                    }
+                }
+                if (!fullyLoaded) {
+                    //Discard the cycle that was found, since it cannot
+                    //be forced yet. Also clear this module from traced.
+                    result = undefined;
+                    delete traced[fullName];
+                }
+            }
+
+            return result;
+        }
+
+        function forceExec(manager, traced) {
             var fullName = manager.map.fullName,
                 depArray = manager.depArray,
                 i, depName, depManager, prefix, prefixManager, value;
+
+
+            if (manager.isDone || !fullName || !loaded[fullName]) {
+                return undefined;
+            }
 
             if (fullName) {
                 if (traced[fullName]) {
@@ -1015,7 +1081,7 @@ var requirejs, require, define;
                 }
             }
 
-            return fullName ? defined[fullName] : undefined;
+            return defined[fullName];
         }
 
         /**
@@ -1028,8 +1094,9 @@ var requirejs, require, define;
             var waitInterval = config.waitSeconds * 1000,
                 //It is possible to disable the wait interval by using waitSeconds of 0.
                 expired = waitInterval && (context.startTime + waitInterval) < new Date().getTime(),
-                noLoads = "", hasLoadedProp = false, stillLoading = false, prop,
-                err, manager;
+                noLoads = "", hasLoadedProp = false, stillLoading = false,
+                cycleDeps = [],
+                i, prop, err, manager, cycleManager, moduleDeps;
 
             //If there are items still in the paused queue processing wait.
             //This is particularly important in the sync case where each paused
@@ -1059,7 +1126,20 @@ var requirejs, require, define;
                             noLoads += prop + " ";
                         } else {
                             stillLoading = true;
-                            break;
+                            if (prop.indexOf('!') === -1) {
+                                //No reason to keep looking for unfinished
+                                //loading. If the only stillLoading is a
+                                //plugin resource though, keep going,
+                                //because it may be that a plugin resource
+                                //is waiting on a non-plugin cycle.
+                                cycleDeps = [];
+                                break;
+                            } else {
+                                moduleDeps = managerCallbacks[prop] && managerCallbacks[prop].moduleDeps;
+                                if (moduleDeps) {
+                                    cycleDeps.push.apply(cycleDeps, moduleDeps);
+                                }
+                            }
                         }
                     }
                 }
@@ -1078,7 +1158,23 @@ var requirejs, require, define;
                 err.requireModules = noLoads;
                 return req.onError(err);
             }
-            if (stillLoading || context.scriptCount) {
+
+            //If still loading but a plugin is waiting on a regular module cycle
+            //break the cycle.
+            if (stillLoading && cycleDeps.length) {
+                for (i = 0; (manager = waiting[cycleDeps[i]]); i++) {
+                    if ((cycleManager = findCycle(manager, {}))) {
+                        forceExec(cycleManager, {});
+                        break;
+                    }
+                }
+
+            }
+
+            //If still waiting on loads, and the waiting load is something
+            //other than a plugin resource, or there are still outstanding
+            //scripts, then just try back later.
+            if (!expired && (stillLoading || context.scriptCount)) {
                 //Something is still waiting to load. Wait for it, but only
                 //if a timeout is not already in effect.
                 if ((isBrowser || isWebWorker) && !checkLoadedTimeoutId) {
@@ -1135,6 +1231,9 @@ var requirejs, require, define;
          */
         resume = function () {
             var manager, map, url, i, p, args, fullName;
+
+            //Any defined modules in the global queue, intake them now.
+            context.takeGlobalQueue();
 
             resumeDepth += 1;
 
@@ -1299,8 +1398,7 @@ var requirejs, require, define;
                     context.requireWait = false;
                     //But first, call resume to register any defined modules that may
                     //be in a data-main built file before the priority config
-                    //call. Also grab any waiting define calls for this context.
-                    context.takeGlobalQueue();
+                    //call.
                     resume();
 
                     context.require(cfg.priority);
@@ -1377,10 +1475,6 @@ var requirejs, require, define;
                 //then resume the dependency processing.
                 if (!context.requireWait) {
                     while (!context.scriptCount && context.paused.length) {
-                        //For built layers, there can be some defined
-                        //modules waiting for intake into the context,
-                        //in particular module plugins. Take them.
-                        context.takeGlobalQueue();
                         resume();
                     }
                 }
@@ -1944,7 +2038,7 @@ var requirejs, require, define;
         //Figure out baseUrl. Get it from the script tag with require.js in it.
         scripts = document.getElementsByTagName("script");
 
-        for (i = scripts.length - 1; i > -1 && (script = scripts[i]); i--) {
+        for (globalI = scripts.length - 1; globalI > -1 && (script = scripts[globalI]); globalI--) {
             //Set the "head" where we can append children by
             //using the script's parent.
             if (!head) {
@@ -2051,10 +2145,6 @@ var requirejs, require, define;
         ctx.requireWait = true;
         setTimeout(function () {
             ctx.requireWait = false;
-
-            //Any modules included with the require.js file will be in the
-            //global queue, assign them to this context.
-            ctx.takeGlobalQueue();
 
             if (!ctx.scriptCount) {
                 ctx.resume();
@@ -2364,6 +2454,7 @@ if(env === 'node') {
 define('node/file', ['fs', 'path'], function (fs, path) {
 
     var isWindows = process.platform === 'win32',
+        windowsDriveRegExp = /^[a-zA-Z]\:\/$/,
         file;
 
     function frontSlash(path) {
@@ -2385,7 +2476,7 @@ define('node/file', ['fs', 'path'], function (fs, path) {
     }
 
     function mkDir(dir) {
-        if (!exists(dir)) {
+        if (!exists(dir) && (!isWindows || !windowsDriveRegExp.test(dir))) {
             fs.mkdirSync(dir, 511);
         }
     }
@@ -2895,6 +2986,14 @@ define('lang', function () {
 
         isArray: Array.isArray ? Array.isArray : function (it) {
             return lang.ostring.call(it) === "[object Array]";
+        },
+
+        isFunction: function(it) {
+            return lang.ostring.call(it) === "[object Function]";
+        },
+
+        isRegExp: function(it) {
+            return it && it instanceof RegExp;
         },
 
         /**
@@ -6726,10 +6825,14 @@ define('parse', ['uglifyjs/index'], function (uglify) {
      * @param {Function} onMatch function to call on a parse match.
      * @param {Object} [options] This is normally the build config options if
      * it is passed.
+     * @param {Function} [recurseCallback] function to call on each valid
+     * node, defaults to parse.parseNode.
      */
-    parse.recurse = function (parentNode, onMatch, options) {
+    parse.recurse = function (parentNode, onMatch, options, recurseCallback) {
         var hasHas = options && options.has,
             i, node;
+
+        recurseCallback = recurseCallback || this.parseNode;
 
         if (isArray(parentNode)) {
             for (i = 0; i < parentNode.length; i++) {
@@ -6750,17 +6853,17 @@ define('parse', ['uglifyjs/index'], function (uglify) {
                     if (hasHas && node[0] === 'if' && node[1] && node[1][0] === 'name' &&
                         (node[1][1] === 'true' || node[1][1] === 'false')) {
                         if (node[1][1] === 'true') {
-                            this.recurse([node[2]], onMatch, options);
+                            this.recurse([node[2]], onMatch, options, recurseCallback);
                         } else {
-                            this.recurse([node[3]], onMatch, options);
+                            this.recurse([node[3]], onMatch, options, recurseCallback);
                         }
                     } else {
-                        if (this.parseNode(node, onMatch)) {
+                        if (recurseCallback(node, onMatch)) {
                             //The onMatch indicated parsing should
                             //stop for children of this node.
                             continue;
                         }
-                        this.recurse(node, onMatch, options);
+                        this.recurse(node, onMatch, options, recurseCallback);
                     }
                 }
             }
@@ -6860,6 +6963,37 @@ define('parse', ['uglifyjs/index'], function (uglify) {
     };
 
     /**
+     * Finds any config that is passed to requirejs.
+     * @param {String} fileName
+     * @param {String} fileContents
+     *
+     * @returns {Object} a config object. Will be null if no config.
+     * Can throw an error if the config in the file cannot be evaluated in
+     * a build context to valid JavaScript.
+     */
+    parse.findConfig = function (fileName, fileContents) {
+        /*jslint evil: true */
+        //This is a litle bit inefficient, it ends up with two uglifyjs parser
+        //calls. Can revisit later, but trying to build out larger functional
+        //pieces first.
+        var foundConfig = null,
+            astRoot = parser.parse(fileContents);
+
+        parse.recurse(astRoot, function (configNode) {
+            var jsConfig;
+
+            if (!foundConfig && configNode) {
+                jsConfig = parse.nodeToString(configNode);
+                foundConfig = eval('(' + jsConfig + ')');
+                return foundConfig;
+            }
+            return undefined;
+        }, null, parse.parseConfigNode);
+
+        return foundConfig;
+    };
+
+    /**
      * Finds all dependencies specified in dependency arrays and inside
      * simplified commonjs wrappers.
      * @param {String} fileName
@@ -6872,7 +7006,7 @@ define('parse', ['uglifyjs/index'], function (uglify) {
         //This is a litle bit inefficient, it ends up with two uglifyjs parser
         //calls. Can revisit later, but trying to build out larger functional
         //pieces first.
-        var dependencies = parse.getAnonDeps(fileName, fileContents),
+        var dependencies = [],
             astRoot = parser.parse(fileContents);
 
         parse.recurse(astRoot, function (callName, config, name, deps) {
@@ -7040,6 +7174,56 @@ define('parse', ['uglifyjs/index'], function (uglify) {
 
                         return onMatch("define", null, name, deps);
                     }
+                }
+            }
+        }
+
+        return false;
+    };
+
+
+    /**
+     * Determines if a specific node is a valid require/requirejs config
+     * call. That includes calls to require/requirejs.config().
+     * @param {Array} node
+     * @param {Function} onMatch a function to call when a match is found.
+     * It is passed the match name, and the config, name, deps possible args.
+     * The config, name and deps args are not normalized.
+     *
+     * @returns {String} a JS source string with the valid require/define call.
+     * Otherwise null.
+     */
+    parse.parseConfigNode = function (node, onMatch) {
+        var call, configNode, args;
+
+        if (!isArray(node)) {
+            return false;
+        }
+
+        if (node[0] === 'call') {
+            call = node[1];
+            args = node[2];
+
+            if (call) {
+                //A require.config() or requirejs.config() call.
+                if ((call[0] === 'dot' &&
+                   (call[1] && call[1][0] === 'name' &&
+                    (call[1][1] === 'require' || call[1][1] === 'requirejs')) &&
+                   call[2] === 'config') ||
+                   //A require() or requirejs() config call.
+
+                   (call[0] === 'name' &&
+                   (call[1] === 'require' || call[1] === 'requirejs'))
+                ) {
+                    //It is a plain require() call.
+                    configNode = args[0];
+
+                    if (configNode[0] !== 'object') {
+                        return null;
+                    }
+
+                    return onMatch(configNode);
+
                 }
             }
         }
@@ -8669,100 +8853,29 @@ function (lang,   logger,   file,          parse,    optimize,   pragma,
         return path.replace(lang.backSlashRegExp, '/');
     };
 
-    /**
-     * Creates a config object for an optimization build.
-     * It will also read the build profile if it is available, to create
-     * the configuration.
-     *
-     * @param {Object} cfg config options that take priority
-     * over defaults and ones in the build file. These options could
-     * be from a command line, for instance.
-     *
-     * @param {Object} the created config object.
-     */
-    build.createConfig = function (cfg) {
-        /*jslint evil: true */
-        var config = {}, buildFileContents, buildFileConfig,
-            paths, props, i, prop, buildFile, absFilePath, originalBaseUrl;
-
-        lang.mixin(config, buildBaseConfig);
-        lang.mixin(config, cfg, true);
-
-        absFilePath = file.absPath('.');
-
-        if (config.buildFile) {
-            //A build file exists, load it to get more config.
-            buildFile = file.absPath(config.buildFile);
-
-            //Find the build file, and make sure it exists, if this is a build
-            //that has a build profile, and not just command line args with an in=path
-            if (!file.exists(buildFile)) {
-                throw new Error("ERROR: build file does not exist: " + buildFile);
-            }
-
-            absFilePath = config.baseUrl = file.absPath(file.parent(buildFile));
-            config.dir = config.baseUrl + "/build/";
-
-            //Load build file options.
-            buildFileContents = file.readFile(buildFile);
-            try {
-                buildFileConfig = eval("(" + buildFileContents + ")");
-            } catch (e) {
-                throw new Error("Build file " + buildFile + " is malformed: " + e);
-            }
-            lang.mixin(config, buildFileConfig, true);
-
-            //Re-apply the override config values, things like command line
-            //args should take precedence over build file values.
-            lang.mixin(config, cfg, true);
-        } else if (config.cssIn) {
-            if (!config.out) {
-                throw new Error("ERROR: 'out' option missing.");
-            } else {
-                config.out = config.out.replace(lang.backSlashRegExp, "/");
-            }
-        }
-
-        if (!config.cssIn && !config.baseUrl) {
-            throw new Error("ERROR: 'baseUrl' option missing.");
-        }
-
-        if (!config.out && !config.dir) {
-            throw new Error('Missing either an "out" or "dir" config value.');
-        }
-
-        if (config.out && !config.cssIn) {
-            //Just one file to optimize.
-
-            //Set up dummy module layer to build.
-            config.modules = [
-                {
-                    name: config.name,
-                    out: config.out,
-                    include: config.include,
-                    exclude: config.exclude,
-                    excludeShallow: config.excludeShallow
+    build.makeAbsObject = function (props, obj, absFilePath) {
+        var i, prop;
+        if (obj) {
+            for (i = 0; (prop = props[i]); i++) {
+                if (obj.hasOwnProperty(prop)) {
+                    obj[prop] = build.makeAbsPath(obj[prop], absFilePath);
                 }
-            ];
-
-            //Does not have a build file, so set up some defaults.
-            //Optimizing CSS should not be allowed, unless explicitly
-            //asked for on command line. In that case the only task is
-            //to optimize a CSS file.
-            if (!cfg.optimizeCss) {
-                config.optimizeCss = "none";
             }
         }
+    };
 
-        //Adjust the path properties as appropriate.
-        //First make sure build paths use front slashes and end in a slash,
-        //and make sure they are aboslute paths.
+    /**
+     * For any path in a possible config, make it absolute relative
+     * to the absFilePath passed in.
+     */
+    build.makeAbsConfig = function (config, absFilePath) {
+        var props, prop, i, originalBaseUrl;
+
         props = ["appDir", "dir", "baseUrl"];
         for (i = 0; (prop = props[i]); i++) {
             if (config[prop]) {
-                config[prop] = config[prop].replace(lang.backSlashRegExp, "/");
-
-                //Add abspath if necessary.
+                //Add abspath if necessary, make sure these paths end in
+                //slashes
                 if (prop === "baseUrl") {
                     originalBaseUrl = config.baseUrl;
                     if (config.appDir) {
@@ -8794,17 +8907,179 @@ function (lang,   logger,   file,          parse,    optimize,   pragma,
         if (config.paths) {
             for (prop in config.paths) {
                 if (config.paths.hasOwnProperty(prop)) {
-                    config.paths[prop] = config.paths[prop].replace(lang.backSlashRegExp, "/");
-                    disallowUrls(config.paths[prop]);
+                    config.paths[prop] = build.makeAbsPath(config.paths[prop],
+                                              (config.baseUrl || absFilePath));
                 }
             }
         }
 
-        //Make sure some other paths are absolute.
-        props = ["out", "cssIn"];
-        for (i = 0; (prop = props[i]); i++) {
-            if (config[prop]) {
-                config[prop] = build.makeAbsPath(config[prop], absFilePath);
+        build.makeAbsObject(["out", "cssIn"], config, absFilePath);
+        build.makeAbsObject(["startFile", "endFile"], config.wrap, absFilePath);
+    };
+
+    build.nestedMix = {
+        paths: true,
+        has: true,
+        hasOnSave: true,
+        pragmas: true,
+        pragmasOnSave: true
+    };
+
+    /**
+     * Mixes additional source config into target config, and merges some
+     * nested config, like paths, correctly.
+     */
+    function mixConfig(target, source) {
+        var prop, value;
+
+        for (prop in source) {
+            if (source.hasOwnProperty(prop)) {
+                //If the value of the property is a plain object, then
+                //allow a one-level-deep mixing of it.
+                value = source[prop];
+                if (typeof value === 'object' && value &&
+                    !lang.isArray(value) && !lang.isFunction(value) &&
+                    !lang.isRegExp(value)) {
+                    if (!target[prop]) {
+                        target[prop] = {};
+                    }
+                    lang.mixin(target[prop], source[prop], true);
+                } else {
+                    target[prop] = source[prop];
+                }
+            }
+        }
+    }
+
+    /**
+     * Creates a config object for an optimization build.
+     * It will also read the build profile if it is available, to create
+     * the configuration.
+     *
+     * @param {Object} cfg config options that take priority
+     * over defaults and ones in the build file. These options could
+     * be from a command line, for instance.
+     *
+     * @param {Object} the created config object.
+     */
+    build.createConfig = function (cfg) {
+        /*jslint evil: true */
+        var config = {}, buildFileContents, buildFileConfig, mainConfig,
+            mainConfigFile, prop, buildFile, absFilePath;
+
+        lang.mixin(config, buildBaseConfig);
+        lang.mixin(config, cfg, true);
+
+        //Make sure all paths are relative to current directory.
+        absFilePath = file.absPath('.');
+        build.makeAbsConfig(config, absFilePath);
+
+        if (config.buildFile) {
+            //A build file exists, load it to get more config.
+            buildFile = file.absPath(config.buildFile);
+
+            //Find the build file, and make sure it exists, if this is a build
+            //that has a build profile, and not just command line args with an in=path
+            if (!file.exists(buildFile)) {
+                throw new Error("ERROR: build file does not exist: " + buildFile);
+            }
+
+            absFilePath = config.baseUrl = file.absPath(file.parent(buildFile));
+
+            //Load build file options.
+            buildFileContents = file.readFile(buildFile);
+            try {
+                buildFileConfig = eval("(" + buildFileContents + ")");
+                build.makeAbsConfig(buildFileConfig, absFilePath);
+
+                if (!buildFileConfig.out && !buildFileConfig.dir) {
+                    buildFileConfig.dir = (buildFileConfig.baseUrl || config.baseUrl) + "/build/";
+                }
+
+            } catch (e) {
+                throw new Error("Build file " + buildFile + " is malformed: " + e);
+            }
+        }
+
+        mainConfigFile = config.mainConfigFile || (buildFileConfig && buildFileConfig.mainConfigFile);
+        if (mainConfigFile) {
+            mainConfigFile = build.makeAbsPath(mainConfigFile, absFilePath);
+            try {
+                mainConfig = parse.findConfig(mainConfigFile, file.readFile(mainConfigFile));
+            } catch (configError) {
+                throw new Error('The config in mainConfigFile ' +
+                        mainConfigFile +
+                        ' cannot be used because it cannot be evaluated' +
+                        ' correctly while running in the optimizer. Try only' +
+                        ' using a config that is also valid JSON, or do not use' +
+                        ' mainConfigFile and instead copy the config values needed' +
+                        ' into a build file or command line arguments given to the optimizer.');
+            }
+            if (mainConfig) {
+                //If no baseUrl, then use the directory holding the main config.
+                if (!mainConfig.baseUrl) {
+                    mainConfig.baseUrl = mainConfigFile.substring(0, mainConfigFile.lastIndexOf('/'));
+                }
+                build.makeAbsConfig(mainConfig, mainConfigFile);
+                mixConfig(config, mainConfig);
+            }
+        }
+
+        //Mix in build file config, but only after mainConfig has been mixed in.
+        if (buildFileConfig) {
+            mixConfig(config, buildFileConfig);
+        }
+
+        //Re-apply the override config values. Command line
+        //args should take precedence over build file values.
+        mixConfig(config, cfg);
+
+        //Check for errors in config
+        if (config.cssIn && !config.out) {
+            throw new Error("ERROR: 'out' option missing.");
+        }
+        if (!config.cssIn && !config.baseUrl) {
+            throw new Error("ERROR: 'baseUrl' option missing.");
+        }
+        if (!config.out && !config.dir) {
+            throw new Error('Missing either an "out" or "dir" config value.');
+        }
+        if (config.out && config.dir) {
+            throw new Error('The "out" and "dir" options are incompatible.' +
+                            ' Use "out" if you are targeting a single file for' +
+                            ' for optimization, and "dir" if you want the appDir' +
+                            ' or baseUrl directories optimized.');
+        }
+
+        if (config.out && !config.cssIn) {
+            //Just one file to optimize.
+
+            //Set up dummy module layer to build.
+            config.modules = [
+                {
+                    name: config.name,
+                    out: config.out,
+                    include: config.include,
+                    exclude: config.exclude,
+                    excludeShallow: config.excludeShallow
+                }
+            ];
+
+            //Does not have a build file, so set up some defaults.
+            //Optimizing CSS should not be allowed, unless explicitly
+            //asked for on command line. In that case the only task is
+            //to optimize a CSS file.
+            if (!cfg.optimizeCss) {
+                config.optimizeCss = "none";
+            }
+        }
+
+        //Do not allow URLs for paths resources.
+        if (config.paths) {
+            for (prop in config.paths) {
+                if (config.paths.hasOwnProperty(prop)) {
+                    disallowUrls(config.paths[prop]);
+                }
             }
         }
 
@@ -9070,7 +9345,7 @@ function (lang,   logger,   file,          parse,    optimize,   pragma,
         //define(\n//begin v1.x content
         //for a comment.
         return new RegExp('(^|[^\\.])(' + (namespace || '').replace(/\./g, '\\.') +
-                          'define|define)\\s*\\(\\s*(\\/\\/[^\\n\\r]*[\\r\\n])?(\\[|f|\\{|["\']([^"\']+)["\'])(\\s*,\\s*f)?');
+                          'define|define)\\s*\\(\\s*(\\/\\/[^\\n\\r]*[\\r\\n])?(\\[|function|[\\w\\d_\\$]+\\s*\\)|\\{|["\']([^"\']+)["\'])(\\s*,\\s*f)?');
     };
 
     build.leadingCommaRegExp = /^\s*,/;
@@ -9179,6 +9454,28 @@ function (lang,   logger,   file,          parse,    optimize,   pragma,
             requirejs({
                 context: 'build'
             }, ['build', 'logger'], runBuild);
+        };
+
+        requirejs.tools = {
+            useLib: function (contextName, callback) {
+                if (!callback) {
+                    callback = contextName;
+                    contextName = 'uselib';
+                }
+
+                if (!useLibLoaded[contextName]) {
+                    loadLib();
+                    useLibLoaded[contextName] = true;
+                }
+
+                var req = requirejs({
+                    context: contextName
+                });
+
+                req(['build'], function () {
+                    callback(req);
+                });
+            }
         };
 
         requirejs.define = define;
