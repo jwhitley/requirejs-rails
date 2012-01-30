@@ -1,3 +1,8 @@
+# v0.5.4
+
+- Upgrade to RequireJS and r.js 1.0.5
+- Pull request #31, closes #30.  Thanks @karelim!
+
 # v0.5.3
 
 - Upgrade to RequireJS and r.js 1.0.4
