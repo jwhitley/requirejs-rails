@@ -3,7 +3,8 @@ require 'requirejs/rails/config'
 
 require 'fileutils'
 require 'pathname'
-require 'sprockets/digest'
+
+require 'sprockets'
 require 'tempfile'
 
 require 'active_support/ordered_options'
