@@ -2,7 +2,7 @@
 var requirejs = require('<%= rjs_path %>'),
     //Set up basic config, include config that is
     //common to all the optimize() calls.
-    basConfig = <%= JSON.pretty_generate(build_config) %>;
+    basConfig = <%= JSON.pretty_generate(build_config.reject {|k,v| k == 'modules'}) %>;
 
 // Function used to mix in baseConfig to a new config target
 function mix(target) {

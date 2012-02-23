@@ -1,3 +1,7 @@
+# v0.5.6
+
+- Upgrade to RequireJS and r.js 1.0.7
+
 # v0.5.5
 
 - Support for Rails 3.2.x.  Rails 3.1.x is also supported by this release.
