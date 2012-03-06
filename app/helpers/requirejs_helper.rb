@@ -12,22 +12,31 @@ module RequirejsHelper
 
   def requirejs_include_tag(name=nil)
     html = ""
-    
+    requirejs = Rails.application.config.requirejs
+
     if controller.requirejs_included
       raise Requirejs::MultipleIncludeError, "Only one requirejs_include_tag allowed per page."
     end
 
-    unless Rails.application.config.requirejs.run_config.empty?
-      html_config = <<-HTML
-      <script>var require = #{Rails.application.config.requirejs.run_config.to_json};</script>
+    unless requirejs.run_config.empty?
+      run_config = requirejs.run_config
+      if Rails.application.config.assets.digest
+        modules = requirejs.build_config['modules'].map { |m| m['name'] }
+        paths = {}
+        modules.each do |m|
+          paths[m] = javascript_path(m).sub /\.js$/,''
+        end
+        run_config['paths'] = paths
+      end
+      html.concat <<-HTML
+      <script>var require = #{run_config.to_json};</script>
       HTML
     end
 
-    html_script = <<-HTML
+    html.concat <<-HTML
     <script #{_data_main name} src="#{javascript_path 'require.js'}"></script>
     HTML
 
-    html = html_config + html_script
     controller.requirejs_included = true
     html.html_safe
   end
