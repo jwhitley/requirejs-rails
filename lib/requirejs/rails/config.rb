@@ -30,15 +30,72 @@ module Requirejs::Rails
         self.user_config = {}
       end
 
-      self.run_config = {
+      self.run_config_whitelist = %w{
+        baseUrl
+        callback
+        catchError
+        context
+        deps
+        jQuery
+        locale
+        packages
+        paths
+        priority
+        scriptType
+        urlArgs
+        waitSeconds
+        xhtml
+      }
+
+      self.build_config_whitelist = %w{
+        appDir
+        baseUrl
+        closure
+        cssImportIgnore
+        cssIn
+        dir
+        fileExclusionRegExp
+        findNestedDependencies
+        has
+        hasOnSave
+        include
+        inlineText
+        locale
+        mainConfigFile
+        modules
+        name
+        namespace
+        onBuildRead
+        onBuildWrite
+        optimize
+        optimizeAllPluginResources
+        optimizeCss
+        out
+        packagePaths
+        packages
+        paths
+        pragmas
+        pragmasOnSave
+        preserveLicenseComments
+        skipModuleInsertion
+        skipPragmas
+        uglify
+        useStrict
+        wrap
+      }
+    end
+
+    def build_config
+      build_config = self.run_config.merge "baseUrl" => source_dir.to_s
+      build_config.merge!(self.user_config).slice(*self.build_config_whitelist)
+    end
+
+    def run_config
+      run_config = {
         "baseUrl" => "/assets",
         "modules" => [ { 'name' => 'application' } ]
       }
-      self.run_config.merge!(self.user_config)
-      self.run_config_json = self.run_config.to_json
-
-      self.build_config = self.run_config.merge "baseUrl" => source_dir.to_s
-      self.build_config.merge!(self.user_config)
+      run_config.merge!(self.user_config).slice(*self.run_config_whitelist)
     end
 
     def module_path_for(name)
