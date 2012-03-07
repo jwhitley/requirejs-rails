@@ -22,11 +22,18 @@ module RequirejsHelper
       run_config = requirejs.run_config
       if Rails.application.config.assets.digest
         modules = requirejs.build_config['modules'].map { |m| m['name'] }
-        paths = {}
-        modules.each do |m|
-          paths[m] = javascript_path(m).sub /\.js$/,''
+
+        # Generate default paths from the modules spec
+        default_paths = {}
+        modules.each { |m| default_paths[m] = m }
+
+        # Update paths in the requirejs configuration with the defaults
+        # and convert the path targets to use digestified asset names.
+        cfg = (run_config['paths'] ||= {})
+        cfg.merge!(default_paths) { |k, user, default| user }
+        cfg.each do |k, v|
+          cfg[k] = javascript_path(v).sub /\.js$/,''
         end
-        run_config['paths'] = paths
       end
       html.concat <<-HTML
       <script>var require = #{run_config.to_json};</script>
