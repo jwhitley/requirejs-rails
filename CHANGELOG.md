@@ -1,3 +1,8 @@
+# v0.6.0
+
+- Fix #20. We now generate a paths config to hit digested assets when
+  appropriate.
+
 # v0.5.6
 
 - Upgrade to RequireJS and r.js 1.0.7
