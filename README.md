@@ -65,14 +65,22 @@ Integrates [RequireJS](http://requirejs.org/) into the Rails 3 Asset Pipeline.
 
 ## Configuration
 
-Configuration lives in `config/requirejs.yml`.  These values are inspected and used by `requirejs-rails` and passed along as configuration for require.js and `r.js`.  This replaces the use of `require.config()` in v0.0.2.  The default configuration declares `application.js` as the sole top-level module.  This can be overridden by creating a `config/requirejs.yml`, such as:
+### The Basics
+
+Configuration lives in `config/requirejs.yml`.  These values are inspected and
+used by `requirejs-rails` and passed along as configuration for require.js and
+`r.js`.  The default configuration declares `application.js` as the sole
+top-level module.  This can be overridden by creating
+a `config/requirejs.yml`, such as:
 
 ```yaml
 modules:
   - name: 'mytoplevel'
 ```
 
-You may pass in [require.js config options](http://requirejs.org/docs/api.html#config) as needed.  For example, to add path parameters:
+You may pass in [require.js config
+options](http://requirejs.org/docs/api.html#config) as needed.  For example,
+to add path parameters:
 
 ```yaml
 paths:
@@ -80,7 +88,12 @@ paths:
   "d3.time": "d3/d3.time"
 ```
 
-Only modules specified in the configuration will be created as build artifacts by `r.js`.  [Layered r.js builds](http://requirejs.org/docs/faq-optimization.html#priority) be configured like so:
+### Layered builds
+
+Only modules specified in the configuration will be created as build artifacts
+by `r.js`.  [Layered r.js
+builds](http://requirejs.org/docs/faq-optimization.html#priority) be
+configured like so:
 
 ```yaml
 modules:
@@ -89,9 +102,43 @@ modules:
     exclude: ['appcommon']
   - name: 'page2'
     exclude: ['appcommon']
+priority: ['appcommon']
 ```
 
-As a guideline, each module in the configuration should either be referenced by a `requirejs_include_tag` in a template or pulled in via a dynamic `require()` call.  Modules which are solely referenced by a dynamic `require()` call (i.e. a call not optimized by r.js) **must** be specified in the modules section in order to produce a correct build.
+In this example, only modules `page1` and `page2` are intended for direct
+loading via `requirejs_include_tag`. The `appcommon` module contains
+dependencies shared by the per-page modules.  As a guideline, each module in
+the configuration should be referenced by one of:
+
+- A `requirejs_include_tag` in a template
+- Pulled in via a dynamic `require()` call.  Modules which are solely
+  referenced by a dynamic `require()` call (i.e. a call not optimized by r.js)
+  **must** be specified in the modules section in order to produce a correct
+  build.
+- Be a common library module like `appcommon`, listed in the `priority` config
+  option.
+
+## Advanced features
+
+### Additional data attributes
+
+`requirejs_include_tag` accepts an optional block which should return a hash.
+This hash will be used to populate additional `data-...` attributes like so:
+
+```erb
+<%= requirejs_include_tag "page1" do |controller|
+      { 'foo' => controller.foo,
+        'bar' => controller.bar
+      }
+    end
+%>
+```
+
+This will generate a script tag like so:
+
+```
+<script data-main="/assets/page1.js" data-foo="..." data-bar="..." src="/assets/require.js"></script>
+```
 
 ## Using AMD libraries
 
@@ -111,29 +158,31 @@ define ['jquery'], ($) ->
 
 ### Backbone.js
 
-**DO NOT USE vanilla Backbone 0.5.3 with require.js!**
-
-Backbone with AMD support hasn't been released yet.  In the meantime, you can download [Backbone 0.5.3 with AMD support](https://github.com/jrburke/backbone/raw/optamd3/backbone.js) from [jrburke's optamd3 branch](https://github.com/jrburke/backbone/tree/optamd3).  See pull request [documentcloud/backbone#710](https://github.com/documentcloud/backbone/pull/710) for details.  Backbone's module name is `backbone`.
+Backbone 0.9.x doesn't support AMD natively.  I recommend the [amdjs
+fork of Backbone](https://github.com/amdjs/backbone/) which adds AMD
+support and actively tracks mainline.
 
 ### Underscore.js
 
-Underscore version 1.2.x, 1.2.2 or later has integrated AMD support.  Get it from [Underscore.js' homepage](http://documentcloud.github.com/underscore/). Underscore's module name is `underscore`.
-
-**IMPORTANT:** Underscore has **removed** AMD support again in the 1.3.x series.  Please consult the [requirejs mailing list](http://groups.google.com/group/requirejs/) for the current recommended solution.
+Underscore 1.3.x likewise doesn't have AMD support.  Again, see
+the [amdjs fork of Underscore](https://github.com/amdjs/underscore).
 
 ## Changes
 
-Usage changes that impact folks upgrading along the 0.x series are documented here.
+Usage changes that impact folks upgrading along the 0.x series are
+documented here. See [the Changelog](CHANGELOG.md) for other details.
 
 ### v0.5.1
 
 - `requirejs_include_tag` now generates a data-main attribute if given an argument, ala:
 
     ```erb
-	<%= requirejs_include_tag "application" %>
-	```
+    <%= requirejs_include_tag "application" %>
+    ```
 
-    This usage is preferred to using a separate `javascript_include_tag`, which will produce errors from require.js or r.js if the included script uses define anonymously, or not at all.
+    This usage is preferred to using a separate
+    `javascript_include_tag`, which will produce errors from require.js or
+    r.js if the included script uses define anonymously, or not at all.
 
 ### v0.5.0
 
@@ -141,12 +190,12 @@ Usage changes that impact folks upgrading along the 0.x series are documented he
 - It is no longer necessary or desirable to specify `baseUrl` explicitly in the configuration.
 - Users should migrate application configuration previously in `application.js` (ala `require.config(...)`) to `config/requirejs.yml`
 
-See [the Changelog](CHANGELOG.md) for other details
+
 
 ## TODOs
 
-- Sample app, including jQuery usage
-- Generator and/or template support.. ?
+Please check out [our GitHub issues page](https://github.com/jwhitley/requirejs-rails/issues)
+to see what's upcoming and to file feature requests and bug reports.
 
 ----
 
