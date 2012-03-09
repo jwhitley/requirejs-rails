@@ -1,6 +1,19 @@
 require 'requirejs/error'
 
 module RequirejsHelper
+  def _requirejs_data(name, &block)
+    {}.tap do |data|
+      if name
+        name += ".js" unless name =~ /\.js$/
+        data['main'] = javascript_path(name)
+      end
+
+      data.merge!(yield controller) if block_given?
+    end.map do |k, v|
+      %Q{data-#{k}="#{v}"}
+    end.join(" ")
+  end
+
   def _data_main(name)
     if name
       name += ".js" unless name =~ /\.js$/
@@ -10,7 +23,7 @@ module RequirejsHelper
     end
   end
 
-  def requirejs_include_tag(name=nil)
+  def requirejs_include_tag(name=nil, &block)
     html = ""
     requirejs = Rails.application.config.requirejs
 
@@ -41,7 +54,7 @@ module RequirejsHelper
     end
 
     html.concat <<-HTML
-    <script #{_data_main name} src="#{javascript_path 'require.js'}"></script>
+    <script #{_requirejs_data(name, &block)} src="#{javascript_path 'require.js'}"></script>
     HTML
 
     controller.requirejs_included = true

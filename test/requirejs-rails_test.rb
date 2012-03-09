@@ -38,6 +38,16 @@ class RequirejsHelperTest < ActionView::TestCase
     assert_select "script:last-of-type[src^=/javascripts/require.js][data-main^=/javascripts/application.js]", :count => 1
   end
   
+  test "requirejs_include_tag_with_block" do
+    test_block = Proc.new do |controller| 
+      { 'class' => controller.class.to_s.demodulize }
+    end
+
+    render :text => wrap(requirejs_include_tag("application", &test_block))
+    assert_select "script:last-of-type[src^=/javascripts/require.js][data-main^=/javascripts/application.js]", :count => 1
+    assert_select "script:last-of-type[src^=/javascripts/require.js][data-class^=TestController]", :count => 1
+  end
+
   test "requirejs_include_tag can appear only once" do
     assert_raises Requirejs::MultipleIncludeError do
       render :text => "#{requirejs_include_tag}\n#{requirejs_include_tag}"
