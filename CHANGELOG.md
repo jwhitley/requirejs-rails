@@ -1,7 +1,10 @@
 # v0.6.0
 
-- Fix #20. We now generate a paths config to hit digested assets when
-  appropriate.
+- We now generate a paths config to hit digested assets when needed (in
+  `production` or when `config.assets.digest` is true). Fixes #20.
+- Support for generating additional data attributes on the require.js script
+  tag via `requirejs_include_tag`. See [README](README.md) for details. Closes 
+  pull request #32; thanks to @hollow for the submission!
 
 # v0.5.6
 
