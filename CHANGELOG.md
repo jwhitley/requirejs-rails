@@ -1,4 +1,10 @@
+# v0.6.1
+
+- Fix regression in production env when `paths` specified in requirejs.yml.
+
 # v0.6.0
+
+**NOTE:** Upgrade to 0.6.1! This was yanked due to a regression.
 
 - We now generate a paths config to hit digested assets when needed (in
   `production` or when `config.assets.digest` is true). Fixes #20.

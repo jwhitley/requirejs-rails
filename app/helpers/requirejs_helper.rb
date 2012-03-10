@@ -36,17 +36,13 @@ module RequirejsHelper
       if Rails.application.config.assets.digest
         modules = requirejs.build_config['modules'].map { |m| m['name'] }
 
-        # Generate default paths from the modules spec
-        default_paths = {}
-        modules.each { |m| default_paths[m] = m }
+        # Generate digestified paths from the modules spec
+        paths = {}
+        modules.each { |m| paths[m] = javascript_path(m).sub /\.js$/,'' }
 
-        # Update paths in the requirejs configuration with the defaults
-        # and convert the path targets to use digestified asset names.
-        cfg = (run_config['paths'] ||= {})
-        cfg.merge!(default_paths) { |k, user, default| user }
-        cfg.each do |k, v|
-          cfg[k] = javascript_path(v).sub /\.js$/,''
-        end
+        # Override uesr paths, whose mappings are only relevant in dev mode
+        # and in the build_config.
+        run_config['paths'] = paths
       end
       html.concat <<-HTML
       <script>var require = #{run_config.to_json};</script>
