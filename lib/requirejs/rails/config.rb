@@ -1,4 +1,5 @@
 require 'requirejs/rails'
+require 'requirejs/error'
 
 require 'active_support/ordered_options'
 require 'erubis'
@@ -6,6 +7,7 @@ require 'pathname'
 
 module Requirejs::Rails
   class Config < ::ActiveSupport::OrderedOptions
+    LOADERS = [:requirejs, :almond]
 
     def initialize(app=Rails.application)
       super
@@ -17,6 +19,8 @@ module Requirejs::Rails
       self.source_dir = self.tmp_dir + 'assets'
       self.target_dir = Rails.root + 'public/assets'
       self.rjs_path   = self.bin_dir+'r.js'
+
+      self.loader = :requirejs
 
       self.driver_template_path = Pathname.new(__FILE__+'/../rjs_driver.js.erb').cleanpath
       self.driver_path = self.tmp_dir + 'rjs_driver.js'
@@ -83,6 +87,13 @@ module Requirejs::Rails
         useStrict
         wrap
       }
+    end
+
+    def loader=(sym)
+      unless LOADERS.include?(sym)
+        raise Requirejs::ConfigError, "Attempt to set unknown loader: #{sym}"
+      end
+      self[:loader] = sym
     end
 
     def build_config
