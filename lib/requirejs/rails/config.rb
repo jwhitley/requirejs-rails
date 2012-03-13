@@ -103,7 +103,6 @@ module Requirejs::Rails
         case self.loader
         when :requirejs 
           # nothing to do
-          # self[:build_config]['modules'].insert(0, { 'name' => 'require', 'skipModuleInsertion' => true })
         when :almond
           mods = self[:build_config]['modules']
           unless mods.length == 1

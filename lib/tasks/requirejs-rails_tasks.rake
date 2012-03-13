@@ -181,7 +181,6 @@ EOM
     task :purge_js => ["requirejs:setup"] do
       new_paths = requirejs.env_paths.dup.delete_if do |p|
         p =~ /javascripts$/ && (requirejs.loader == :requirejs && p !~ /requirejs-rails/)
-        # p =~ /javascripts$/
       end
       requirejs.env.clear_paths
       new_paths.each { |p| requirejs.env.append_path(p) }
