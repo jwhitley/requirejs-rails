@@ -1,3 +1,8 @@
+# v0.7.0
+
+- Support for [almond](https://github.com/jrburke/almond) via
+  `config.requirejs.loader = :almond` in application.rb.
+
 # v0.6.1
 
 - Fix regression in production env when `paths` specified in requirejs.yml.

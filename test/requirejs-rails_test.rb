@@ -17,6 +17,23 @@ class RequirejsRailsTest < ActiveSupport::TestCase
   end
 end
 
+class RequirejsRailsConfigTest < ActiveSupport::TestCase
+  def setup
+    @cfg = Requirejs::Rails::Config.new
+  end
+
+  test "config accepts known loaders" do
+    @cfg.loader = :almond
+    assert_equal :almond, @cfg.loader
+  end
+
+  test "config rejects bad loaders" do
+    assert_raises Requirejs::ConfigError do
+      @cfg.loader = :wombat
+    end
+  end
+end
+
 class RequirejsHelperTest < ActionView::TestCase
   
   def setup

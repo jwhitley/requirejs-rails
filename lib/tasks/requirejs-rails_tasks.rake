@@ -138,7 +138,7 @@ EOM
     # build config, to its Sprockets digestified name.
     task :digestify_and_compress => ["requirejs:setup"] do
       requirejs.config.build_config['modules'].each do |m|
-        asset_name = "#{m['name']}.js"
+        asset_name = "#{requirejs.config.module_name_for(m)}.js"
         built_asset_path = requirejs.config.target_dir + asset_name
         digest_name = asset_name.sub(/\.(\w+)$/) { |ext| "-#{requirejs.builder.digest_for(built_asset_path)}#{ext}" }
         digest_asset_path = requirejs.config.target_dir + digest_name
@@ -165,16 +165,28 @@ EOM
     invoke_or_reboot_rake_task "requirejs:precompile:all"
   end
 
-  # We remove all .js assets from the Rails Asset Pipeline when 
-  # precompiling, as those are handled by r.js. Conversely, r.js 
-  # only sees .js assets. For now, this is by path convention; any
-  # asset path ending in "javascript". If you've got javascripts in 
-  # your stylesheets directory, then heaven help you. You've got bigger
+  # FIXME: issue #37. Assumption below busted; some gems put an entire
+  # CSS+js third-party bundle into vendor/assets/<project>, e.g. typus.
+  # This is upstream's delivery bundling, and works with Sprockets. We
+  # need to support this.
+  #
+  # We remove all .js assets from the Rails Asset Pipeline when
+  # precompiling, as those are handled by r.js. Conversely, r.js only
+  # sees .js assets. For now, this is by path convention; any asset path
+  # ending in "javascript". If you've got javascripts in your
+  # stylesheets directory, then heaven help you. You've got bigger
   # problems.
   namespace :assets do
     # Purge all ".../javascripts" directories from the asset paths
     task :purge_js => ["requirejs:setup"] do
-      new_paths = requirejs.env_paths.dup.delete_if { |p| p =~ /javascripts$/ && p !~ /requirejs-rails/ }
+      new_paths = requirejs.env_paths.dup.delete_if do |p|
+        case requirejs.config.loader
+        when :requirejs
+          p =~ /javascripts$/ && p !~ /requirejs-rails/
+        when :almond
+          p =~ /javascripts$/
+        end
+      end
       requirejs.env.clear_paths
       new_paths.each { |p| requirejs.env.append_path(p) }
     end

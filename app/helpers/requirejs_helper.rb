@@ -24,8 +24,14 @@ module RequirejsHelper
   end
 
   def requirejs_include_tag(name=nil, &block)
-    html = ""
     requirejs = Rails.application.config.requirejs
+
+    if requirejs.loader == :almond
+      name = requirejs.module_name_for(requirejs.build_config['modules'][0])
+      return _almond_include_tag(name, &block)
+    end
+
+    html = ""
 
     if controller.requirejs_included
       raise Requirejs::MultipleIncludeError, "Only one requirejs_include_tag allowed per page."
@@ -34,7 +40,7 @@ module RequirejsHelper
     unless requirejs.run_config.empty?
       run_config = requirejs.run_config
       if Rails.application.config.assets.digest
-        modules = requirejs.build_config['modules'].map { |m| m['name'] }
+        modules = requirejs.build_config['modules'].map { |m| requirejs.module_name_for m }
 
         # Generate digestified paths from the modules spec
         paths = {}
@@ -55,5 +61,9 @@ module RequirejsHelper
 
     controller.requirejs_included = true
     html.html_safe
+  end
+
+  def _almond_include_tag(name, &block)
+    "<script src='#{javascript_path name}'></script>\n".html_safe
   end
 end

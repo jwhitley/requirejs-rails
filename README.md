@@ -118,6 +118,25 @@ the configuration should be referenced by one of:
 - Be a common library module like `appcommon`, listed in the `priority` config
   option.
 
+### Almond support
+
+This gem supports single-file builds with
+[almond](https://github.com/jrburke/almond). Use the following setting in
+`application.rb` to enable it:
+
+```ruby
+config.requirejs.loader = :almond
+```
+
+Almond builds have the restriction that there must be exactly one modules entry in
+`requirejs.yml`.  Typically the [wrap option](https://github.com/jrburke/r.js/blob/master/build/example.build.js#L275) will be used to create a self-contained build:
+
+```yaml
+modules:
+  - name: 'main'
+wrap: true
+```
+
 ## Advanced features
 
 ### Additional data attributes
