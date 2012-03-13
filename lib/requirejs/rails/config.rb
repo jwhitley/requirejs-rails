@@ -1,4 +1,5 @@
 require 'requirejs/rails'
+require 'requirejs/error'
 
 require 'active_support/ordered_options'
 require 'erubis'
@@ -6,8 +7,9 @@ require 'pathname'
 
 module Requirejs::Rails
   class Config < ::ActiveSupport::OrderedOptions
+    LOADERS = [ :requirejs, :almond ]
 
-    def initialize(app=Rails.application)
+    def initialize
       super
       self.manifest = nil
 
@@ -18,17 +20,10 @@ module Requirejs::Rails
       self.target_dir = Rails.root + 'public/assets'
       self.rjs_path   = self.bin_dir+'r.js'
 
+      self.loader = :requirejs
+
       self.driver_template_path = Pathname.new(__FILE__+'/../rjs_driver.js.erb').cleanpath
       self.driver_path = self.tmp_dir + 'rjs_driver.js'
-
-      # The user-supplied config parameters, to be merged with the default params.
-      # This file must contain a single JavaScript object.
-      self.user_config_file = Pathname.new(app.paths["config"].first)+'requirejs.yml'
-      if self.user_config_file.exist?
-        self.user_config = YAML.load(self.user_config_file.read)
-      else
-        self.user_config = {}
-      end
 
       self.run_config_whitelist = %w{
         baseUrl
@@ -85,9 +80,32 @@ module Requirejs::Rails
       }
     end
 
+    def loader=(sym)
+      unless LOADERS.include?(sym)
+        raise Requirejs::ConfigError, "Attempt to set unknown loader: #{sym}"
+      end
+      self[:loader] = sym
+    end
+
     def build_config
-      build_config = self.run_config.merge "baseUrl" => source_dir.to_s
-      build_config.merge!(self.user_config).slice(*self.build_config_whitelist)
+      unless self.has_key?(:build_config)
+        self[:build_config] = self.run_config.merge "baseUrl" => source_dir.to_s
+        self[:build_config].merge!(self.user_config).slice!(*self.build_config_whitelist)
+        case self.loader
+        when :requirejs 
+          # nothing to do
+        when :almond
+          mods = self[:build_config]['modules']
+          unless mods.length == 1
+            raise Requirejs::ConfigError, "Almond build requires exactly one module, config has #{mods.length}."
+          end
+          mod = mods[0]
+          name = mod['name']
+          mod['name'] = 'almond'
+          mod['include'] = name
+        end
+      end
+      self[:build_config]
     end
 
     def run_config
@@ -98,8 +116,17 @@ module Requirejs::Rails
       run_config.merge!(self.user_config).slice(*self.run_config_whitelist)
     end
 
-    def module_path_for(name)
-      self.target_dir+(name+'.js')
+    def module_name_for(mod)
+      case self.loader
+      when :almond
+        return mod['include']
+      when :requirejs
+        return mod['name']
+      end
+    end
+
+    def module_path_for(mod)
+      self.target_dir+(module_name_for(mod)+'.js')
     end
 
     def get_binding

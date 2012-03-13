@@ -1,32 +1,22 @@
 //Load the requirejs optimizer
 var requirejs = require('<%= rjs_path %>'),
-    //Set up basic config, include config that is
-    //common to all the optimize() calls.
-    basConfig = <%= JSON.pretty_generate(build_config.reject {|k,v| k == 'modules'}) %>;
+  //Set up basic config, include config that is
+  //common to all the optimize() calls.
+  basConfig = <%= JSON.pretty_generate(build_config.reject {|k,v| k == 'modules'}) %>;
 
 // Function used to mix in baseConfig to a new config target
 function mix(target) {
-    for (var prop in basConfig) {
-        if (basConfig.hasOwnProperty(prop)) {
-            target[prop] = basConfig[prop];
-        }
+  for (var prop in basConfig) {
+    if (basConfig.hasOwnProperty(prop)) {
+      target[prop] = basConfig[prop];
     }
-    return target;
+  }
+  return target;
 }
 
 var module_specs = [
 <% build_config['modules'].each do |m| %>
-  {
-    name: "<%= m['name'] %>",
-    <% if m['include'] %>
-    include: [<%= m['include'].map {|i| "'#{i}'" }.join(", ") %>],
-    <% end %>
-    <% if m['exclude'] %>
-    exclude: [<%= m['exclude'].map {|i| "'#{i}'" }.join(", ") %>],
-    <% end %>
-
-    out: '<%= module_path_for m['name'] %>'
-  },
+<%= JSON.pretty_generate(m.merge 'out' => module_path_for(m).to_s ) %>,
 <% end %>
 ];
 
