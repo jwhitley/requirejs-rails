@@ -7,7 +7,7 @@ require 'pathname'
 
 module Requirejs::Rails
   class Config < ::ActiveSupport::OrderedOptions
-    LOADERS = [:requirejs, :almond]
+    LOADERS = [ :requirejs, :almond ]
 
     def initialize(app=Rails.application)
       super
@@ -97,8 +97,25 @@ module Requirejs::Rails
     end
 
     def build_config
-      build_config = self.run_config.merge "baseUrl" => source_dir.to_s
-      build_config.merge!(self.user_config).slice(*self.build_config_whitelist)
+      unless self.has_key?(:build_config)
+        self[:build_config] = self.run_config.merge "baseUrl" => source_dir.to_s
+        self[:build_config].merge!(self.user_config).slice!(*self.build_config_whitelist)
+        case self.loader
+        when :requirejs 
+          # nothing to do
+          # self[:build_config]['modules'].insert(0, { 'name' => 'require', 'skipModuleInsertion' => true })
+        when :almond
+          mods = self[:build_config]['modules']
+          unless mods.length == 1
+            raise Requirejs::ConfigError, "Almond build requires exactly one module, config has #{mods.length}."
+          end
+          mod = mods[0]
+          name = mod['name']
+          mod['name'] = 'almond'
+          mod['include'] = name
+        end
+      end
+      self[:build_config]
     end
 
     def run_config
@@ -109,7 +126,13 @@ module Requirejs::Rails
       run_config.merge!(self.user_config).slice(*self.run_config_whitelist)
     end
 
-    def module_path_for(name)
+    def module_path_for(mod)
+      case self.loader
+      when :almond
+        name = mod['include']
+      when :requirejs
+        name = mod['name']
+      end
       self.target_dir+(name+'.js')
     end
 

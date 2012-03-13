@@ -25,7 +25,7 @@ var module_specs = [
     exclude: [<%= m['exclude'].map {|i| "'#{i}'" }.join(", ") %>],
     <% end %>
 
-    out: '<%= module_path_for m['name'] %>'
+    out: '<%= module_path_for m %>'
   },
 <% end %>
 ];
