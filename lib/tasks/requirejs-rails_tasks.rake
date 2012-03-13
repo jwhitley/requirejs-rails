@@ -138,7 +138,7 @@ EOM
     # build config, to its Sprockets digestified name.
     task :digestify_and_compress => ["requirejs:setup"] do
       requirejs.config.build_config['modules'].each do |m|
-        asset_name = "#{m['name']}.js"
+        asset_name = "#{requirejs.config.module_name_for(m)}.js"
         built_asset_path = requirejs.config.target_dir + asset_name
         digest_name = asset_name.sub(/\.(\w+)$/) { |ext| "-#{requirejs.builder.digest_for(built_asset_path)}#{ext}" }
         digest_asset_path = requirejs.config.target_dir + digest_name
@@ -180,7 +180,12 @@ EOM
     # Purge all ".../javascripts" directories from the asset paths
     task :purge_js => ["requirejs:setup"] do
       new_paths = requirejs.env_paths.dup.delete_if do |p|
-        p =~ /javascripts$/ && (requirejs.loader == :requirejs && p !~ /requirejs-rails/)
+        case requirejs.config.loader
+        when :requirejs
+          p =~ /javascripts$/ && p !~ /requirejs-rails/
+        when :almond
+          p =~ /javascripts$/
+        end
       end
       requirejs.env.clear_paths
       new_paths.each { |p| requirejs.env.append_path(p) }

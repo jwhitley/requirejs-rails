@@ -9,7 +9,7 @@ module Requirejs::Rails
   class Config < ::ActiveSupport::OrderedOptions
     LOADERS = [ :requirejs, :almond ]
 
-    def initialize(app=Rails.application)
+    def initialize
       super
       self.manifest = nil
 
@@ -24,15 +24,6 @@ module Requirejs::Rails
 
       self.driver_template_path = Pathname.new(__FILE__+'/../rjs_driver.js.erb').cleanpath
       self.driver_path = self.tmp_dir + 'rjs_driver.js'
-
-      # The user-supplied config parameters, to be merged with the default params.
-      # This file must contain a single JavaScript object.
-      self.user_config_file = Pathname.new(app.paths["config"].first)+'requirejs.yml'
-      if self.user_config_file.exist?
-        self.user_config = YAML.load(self.user_config_file.read)
-      else
-        self.user_config = {}
-      end
 
       self.run_config_whitelist = %w{
         baseUrl
@@ -125,14 +116,17 @@ module Requirejs::Rails
       run_config.merge!(self.user_config).slice(*self.run_config_whitelist)
     end
 
-    def module_path_for(mod)
+    def module_name_for(mod)
       case self.loader
       when :almond
-        name = mod['include']
+        return mod['include']
       when :requirejs
-        name = mod['name']
+        return mod['name']
       end
-      self.target_dir+(name+'.js')
+    end
+
+    def module_path_for(mod)
+      self.target_dir+(module_name_for(mod)+'.js')
     end
 
     def get_binding
