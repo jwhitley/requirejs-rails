@@ -186,10 +186,11 @@ support and actively tracks mainline.
 Underscore 1.3.x likewise doesn't have AMD support.  Again, see
 the [amdjs fork of Underscore](https://github.com/amdjs/underscore).
 
-## Changes
+## 0.x API Changes
 
-Usage changes that impact folks upgrading along the 0.x series are
-documented here. See [the Changelog](CHANGELOG.md) for other details.
+Usage changes that may break functionality for those upgrading along the 0.x
+series are documented here. See [the Changelog](CHANGELOG.md) for the full
+list of feature additions, bugfixes, etc.
 
 ### v0.5.1
 
