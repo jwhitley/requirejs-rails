@@ -63,17 +63,17 @@ EOM
   end
 
   namespace :precompile do
-    # Depend on test_node first here so we'll fail early and hard if
-    # node isn't available.
-    task :all => ["requirejs:test_node",
-                  "requirejs:precompile:prepare_source",
+    task :all => ["requirejs:precompile:prepare_source",
                   "requirejs:precompile:generate_rjs_driver",
                   "requirejs:precompile:run_rjs",
                   "requirejs:precompile:digestify_and_compress"]
 
-    # invoke another ruby process if we're called from inside assets:precompile
-    # so we don't clobber the environment
-    task :external do
+    # Invoke another ruby process if we're called from inside
+    # assets:precompile so we don't clobber the environment
+    #
+    # We depend on test_node here so we'll fail early and hard if node
+    # isn't available.
+    task :external => ["requirejs:test_node"] do
       ruby_rake_task "requirejs:precompile:all"
     end
 
