@@ -89,7 +89,8 @@ module Requirejs::Rails
 
     def build_config
       unless self.has_key?(:build_config)
-        self[:build_config] = self.run_config.merge "baseUrl" => source_dir.to_s
+        self[:build_config] = self.run_config.merge "baseUrl" => source_dir.to_s,
+                                                    "modules" => [ { 'name' => 'application' } ]
         self[:build_config].merge!(self.user_config).slice!(*self.build_config_whitelist)
         case self.loader
         when :requirejs 
@@ -109,10 +110,7 @@ module Requirejs::Rails
     end
 
     def run_config
-      run_config = {
-        "baseUrl" => "/assets",
-        "modules" => [ { 'name' => 'application' } ]
-      }
+      run_config = { "baseUrl" => "/assets" }
       run_config.merge!(self.user_config).slice(*self.run_config_whitelist)
     end
 
