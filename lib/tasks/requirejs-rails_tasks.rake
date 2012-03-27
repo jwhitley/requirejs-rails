@@ -137,4 +137,10 @@ EOM
   end
 end
 
+task "assets:environment" do
+  # Ensure that require.js will be precompiled by Sprockets
+  if Rails.application.config.requirejs.loader == :requirejs
+    Rails.application.config.assets.precompile += %w( require.js )
+  end
+end
 task "assets:precompile" => ["requirejs:precompile:external"]
