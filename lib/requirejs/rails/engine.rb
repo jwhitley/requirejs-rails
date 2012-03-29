@@ -23,26 +23,22 @@ module Requirejs
         end
       end
 
+      config.before_initialize do |app|
+        config = app.config
+        if ::Rails.env == "production"
+          config.assets.precompile += config.requirejs.precompile
+        end
+
+        manifest_path = File.join(::Rails.public_path, config.assets.prefix, "rjs_manifest.yml")
+        config.requirejs.manifest_path = Pathname.new(manifest_path)
+      end
+
       ### Initializers
       initializer "requirejs.tag_included_state" do |app|
         ActiveSupport.on_load(:action_controller) do
           ::ActionController::Base.class_eval do
             attr_accessor :requirejs_included
           end
-        end
-      end
-
-      initializer "requirejs.config" do |app|
-        config = app.config
-        if config.requirejs.manifest
-          path = File.join(config.assets.manifest, "rjs_manifest.yml")
-        else
-          path = File.join(::Rails.public_path, config.assets.prefix, "rjs_manifest.yml")
-        end
-        config.requirejs.manifest_path = Pathname.new(path)
-
-        if ::Rails.env == "production"
-          config.assets.precompile += config.requirejs.precompile
         end
       end
 
