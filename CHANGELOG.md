@@ -2,6 +2,12 @@
 
 - Support for [almond](https://github.com/jrburke/almond) via
   `config.requirejs.loader = :almond` in application.rb.
+- Builds with `config.assets.initialize_on_precompile = false` now work.
+  This supports building on Heroku, builds with Devise, etc. all of
+  which require that setting.
+- We should now play much better with existing Rails Engines that
+  leverage the asset pipeline for their needs.  Thanks to @hollow for the
+  patch.
 
 # v0.6.1
 

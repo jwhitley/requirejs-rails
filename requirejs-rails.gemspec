@@ -6,7 +6,7 @@ require "requirejs/rails/version"
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
   s.name        = "requirejs-rails"
-  s.version     = Requirejs::Rails::VERSION
+  s.version     = Requirejs::Rails::Version
   s.authors     = ["John Whitley"]
   s.email       = ["whitley@bangpath.org"]
   s.homepage    = "http://github.com/jwhitley/requirejs-rails"

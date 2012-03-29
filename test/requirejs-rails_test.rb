@@ -13,7 +13,12 @@ class RequirejsRailsTest < ActiveSupport::TestCase
   test "require.js version" do
     require_js = Pathname.new(__FILE__+'/../../vendor/assets/javascripts/require.js').cleanpath.read
     context = ExecJS.compile(require_js)
-    assert_equal "1.0.7", context.eval("require.version")
+    assert_equal Requirejs::Rails::LibVersion, context.eval("require.version")
+  end
+
+  test "CHANGELOG up to date" do
+    changelog_match = (/^# v#{Requirejs::Rails::Version}/ =~ Pathname.new(__FILE__+'/../../CHANGELOG.md').cleanpath.read)
+    assert changelog_match, "CHANGELOG has no section for v#{Requirejs::Rails::Version}"
   end
 end
 
