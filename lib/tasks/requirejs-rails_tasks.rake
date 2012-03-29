@@ -31,7 +31,7 @@ namespace :requirejs do
     FileUtils.remove_entry_secure(requirejs.driver_path, true)
   end
 
-  task :setup => ["environment"] do
+  task :setup => ["assets:environment"] do
     unless Rails.application.config.assets.enabled
       warn "Cannot precompile assets if sprockets is disabled. Please set config.assets.enabled to true"
       exit
@@ -42,6 +42,7 @@ namespace :requirejs do
     _ = ActionView::Base
 
     requirejs.env = Rails.application.assets
+
     # Preserve the original asset paths, as we'll be manipulating them later
     requirejs.env_paths = requirejs.env.paths.dup
     requirejs.config = Rails.application.config.requirejs
@@ -67,6 +68,13 @@ EOM
                   "requirejs:precompile:generate_rjs_driver",
                   "requirejs:precompile:run_rjs",
                   "requirejs:precompile:digestify_and_compress"]
+
+    task :disable_js_compressor do
+      # Ensure that Sprockets doesn't try to compress assets before they hit
+      # r.js.  Failure to do this can cause a build which works in dev, but
+      # emits require.js "notloaded" errors, etc. in production.
+      Rails.application.config.assets.js_compressor = false
+    end
 
     # Invoke another ruby process if we're called from inside
     # assets:precompile so we don't clobber the environment
@@ -137,10 +145,7 @@ EOM
   end
 end
 
-task "assets:environment" do
-  # Ensure that require.js will be precompiled by Sprockets
-  if Rails.application.config.requirejs.loader == :requirejs
-    Rails.application.config.assets.precompile += %w( require.js )
-  end
-end
 task "assets:precompile" => ["requirejs:precompile:external"]
+if ARGV[0] == "requirejs:precompile:all"
+  task "assets:environment" => ["requirejs:precompile:disable_js_compressor"]
+end
