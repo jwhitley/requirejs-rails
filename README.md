@@ -189,7 +189,7 @@ the [amdjs fork of Underscore](https://github.com/amdjs/underscore).
 ## 0.x API Changes
 
 Usage changes that may break functionality for those upgrading along the 0.x
-series are documented here. See [the Changelog](CHANGELOG.md) for the full
+series are documented here. See [the Changelog](https://github.com/jwhitley/requirejs-rails/blob/master/CHANGELOG.md) for the full
 list of feature additions, bugfixes, etc.
 
 ### v0.5.1
