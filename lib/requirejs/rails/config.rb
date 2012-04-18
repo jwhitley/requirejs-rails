@@ -13,6 +13,7 @@ module Requirejs::Rails
       super
       self.manifest = nil
 
+      self.logical_asset_filter = [/\.js$/,/\.html$/,/\.txt$/]
       self.tmp_dir = Rails.root + 'tmp'
       self.bin_dir = Pathname.new(__FILE__+'/../../../../bin').cleanpath
 
@@ -129,6 +130,12 @@ module Requirejs::Rails
 
     def get_binding
       return binding()
+    end
+
+    def asset_allowed?(asset)
+      self.logical_asset_filter.reduce(false) do |accum, matcher|
+        accum || (matcher =~ asset)
+      end ? true : false
     end
   end
 end
