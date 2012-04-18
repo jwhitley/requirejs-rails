@@ -1,3 +1,11 @@
+# v0.7.1
+
+- Liberalize asset path filtering.  `0.7.0` added filtering on the logical
+  asset path which was too aggressive in that only `.js` files were allowed in
+  builds.  The RequireJS config variable `logical_asset_filter` has been
+  added, which allows `.js`, `.html`, `.txt` files by default and is user
+  configurable.
+
 # v0.7.0
 
 - Support for [almond](https://github.com/jrburke/almond) via

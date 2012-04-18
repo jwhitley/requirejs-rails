@@ -6,15 +6,15 @@ Integrates [RequireJS](http://requirejs.org/) into the Rails 3 Asset Pipeline.
 
 ## Usage
 
-1. Add this to your Rails app's `Gemfile`:
+1.  Add this to your Rails app's `Gemfile`:
 
     ```
     gem 'requirejs-rails'
     ```
 
-2. Remove all Sprockets directives such as `//= require jquery` from `application.js` and elsewhere.  Instead establish JavaScript dependencies using AMD-style `define()` and `require()` calls.
+2.  Remove all Sprockets directives such as `//= require jquery` from `application.js` and elsewhere.  Instead establish JavaScript dependencies using AMD-style `define()` and `require()` calls.
 
-3. Use `requirejs_include_tag` at the top-level of your app's layout(s).  Other modules will be pulled in dynamically by `require.js` in development and for production builds optimized by `r.js`.  Here's a basic `app/views/layouts/application.html.erb` modified for `requirejs-rails`:
+3.  Use `requirejs_include_tag` at the top-level of your app's layout(s).  Other modules will be pulled in dynamically by `require.js` in development and for production builds optimized by `r.js`.  Here's a basic `app/views/layouts/application.html.erb` modified for `requirejs-rails`:
 
     ```erb
     <!DOCTYPE html>
@@ -34,32 +34,35 @@ Integrates [RequireJS](http://requirejs.org/) into the Rails 3 Asset Pipeline.
     </html>
     ```
 
-4. Organize your JavaScript or CoffeeScript code into modules using `define()`:
+4.  Organize your JavaScript or CoffeeScript code into modules using `define()`:
 
-      ```coffeescript
-      # app/assets/javascripts/views/tweet_view.js.coffee
+    ```coffeescript
+    # app/assets/javascripts/views/tweet_view.js.coffee
 
-      define ['backbone'], (Backbone) ->
-        class TweetView extends Backbone.View
-          # ...
-      ```
+    define ['backbone'], (Backbone) ->
+      class TweetView extends Backbone.View
+        # ...
+    ```
 
-5. Instantiate your app using `require()` from a top-level module such as `application.js`:
+5.  Instantiate your app using `require()` from a top-level module such as `application.js`:
 
-      ```coffeescript
-      # app/assets/javascripts/application.js.coffee
+    ```coffeescript
+    # app/assets/javascripts/application.js.coffee
 
-      require ['jquery', 'backbone', 'TheApp'], ($, Backbone, TheApp) ->
+    require ['jquery', 'backbone', 'TheApp'], ($, Backbone, TheApp) ->
 
-        # Start up the app once the DOM is ready
-        $ ->
-          window.App = new TheApp()
-          Backbone.history.start
-            pushState: true
-          window.App.start()
-      ```
+      # Start up the app once the DOM is ready
+      $ ->
+        window.App = new TheApp()
+        Backbone.history.start
+          pushState: true
+        window.App.start()
+    ```
 
-6. When ready, build your assets for production deployment as usual.  `requirejs-rails` defaults to a single-file build of `application.js`.  Additional modules and r.js layered builds may be specified via `config\requirejs.yml`; see the Configuration section below.
+6.  When ready, build your assets for production deployment as usual.
+    `requirejs-rails` defaults to a single-file build of `application.js`.
+    Additional modules and r.js layered builds may be specified via
+    `config\requirejs.yml`; see the Configuration section below.
 
     ```rake assets:precompile```
 
@@ -135,6 +138,30 @@ Almond builds have the restriction that there must be exactly one modules entry 
 modules:
   - name: 'main'
 wrap: true
+```
+
+### Build-time asset filter
+
+The `requirejs-rails` build process uses the Asset Pipeline to assemble assets
+for the `r.js` build.  By default, assets ending in `.js`, `.html`, and `.txt`
+will be made available to the build.  If you have other asset suffixes to
+include, use the `logical_asset_filter` config setting to add them.
+
+For example, if your templates all end in `.templ` like so...
+
+```javascript
+// in app/assets/javascripts/myapp.js
+define(function (require) {
+  var stuff = require('text!stuff.templ');
+  // ...
+});
+```
+
+... then this config setting will ensure they're picked up in the build:
+
+```ruby
+# in config/application.rb
+config.requirejs.logical_asset_filter += [/\.templ$/]
 ```
 
 ## Advanced features
