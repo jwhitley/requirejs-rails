@@ -37,6 +37,13 @@ class RequirejsRailsConfigTest < ActiveSupport::TestCase
       @cfg.loader = :wombat
     end
   end
+
+  test "matches configured logical assets" do
+    assert_equal true, @cfg.asset_allowed?('foo.js')
+    assert_equal false, @cfg.asset_allowed?('bar.frobnitz')
+    @cfg.logical_asset_filter += [/\.frobnitz$/]
+    assert_equal true, @cfg.asset_allowed?('bar.frobnitz')
+  end
 end
 
 class RequirejsHelperTest < ActionView::TestCase
