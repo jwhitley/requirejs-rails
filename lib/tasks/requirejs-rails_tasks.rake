@@ -90,7 +90,7 @@ EOM
                              "requirejs:clean"] do
       requirejs.config.source_dir.mkpath
       requirejs.env.each_logical_path do |logical_path|
-        next unless logical_path =~ /\.js$/
+        next unless requirejs.config.asset_allowed?(logical_path)
         if asset = requirejs.env.find_asset(logical_path)
           filename = requirejs.config.source_dir + asset.logical_path
           filename.dirname.mkpath
