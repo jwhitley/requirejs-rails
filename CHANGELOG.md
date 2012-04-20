@@ -1,3 +1,7 @@
+# v0.7.3
+
+- Upgrade RequireJS and r.js to v1.0.8
+
 # v0.7.2
 
 - Add require.js to config.assets.precompile in all environments.  Closes #45.
