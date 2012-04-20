@@ -25,9 +25,7 @@ module Requirejs
 
       config.before_initialize do |app|
         config = app.config
-        if ::Rails.env == "production"
-          config.assets.precompile += config.requirejs.precompile
-        end
+        config.assets.precompile += config.requirejs.precompile
 
         manifest_path = File.join(::Rails.public_path, config.assets.prefix, "rjs_manifest.yml")
         config.requirejs.manifest_path = Pathname.new(manifest_path)
@@ -49,7 +47,7 @@ module Requirejs
           config.assets.digests.merge!(rjs_digests)
         end
       end
-      
+
     end # class Engine
   end
 end
