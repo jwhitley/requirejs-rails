@@ -1,3 +1,9 @@
+# v0.7.2
+
+- Add require.js to config.assets.precompile in all environments.  Closes #45.
+  This change allows builds to work in Rails environments other than
+  'production', e.g. 'staging'.  Thanks to @hollow for the fix.
+
 # v0.7.1
 
 - Liberalize asset path filtering.  `0.7.0` added filtering on the logical
