@@ -5,7 +5,7 @@ module RequirejsHelper
     {}.tap do |data|
       if name
         name += ".js" unless name =~ /\.js$/
-        data['main'] = javascript_path(name)
+        data['main'] = _javascript_path(name)
       end
 
       data.merge!(yield controller) if block_given?
@@ -17,7 +17,7 @@ module RequirejsHelper
   def _data_main(name)
     if name
       name += ".js" unless name =~ /\.js$/
-      %Q{data-main="#{javascript_path(name)}"}
+      %Q{data-main="#{_javascript_path(name)}"}
     else
       ""
     end
@@ -41,7 +41,7 @@ module RequirejsHelper
 
           # Generate digestified paths from the modules spec
           paths = {}
-          modules.each { |m| paths[m] = javascript_path(m).sub /\.js$/,'' }
+          modules.each { |m| paths[m] = _javascript_path(m).sub /\.js$/,'' }
 
           # Override uesr paths, whose mappings are only relevant in dev mode
           # and in the build_config.
@@ -53,7 +53,7 @@ module RequirejsHelper
       end
 
       html.concat <<-HTML
-      <script #{_requirejs_data(name, &block)} src="#{javascript_path 'require.js'}"></script>
+      <script #{_requirejs_data(name, &block)} src="#{_javascript_path 'require.js'}"></script>
       HTML
 
       html.html_safe
@@ -72,6 +72,14 @@ module RequirejsHelper
   end
 
   def _almond_include_tag(name, &block)
-    "<script src='#{javascript_path name}'></script>\n".html_safe
+    "<script src='#{_javascript_path name}'></script>\n".html_safe
+  end
+
+  def _javascript_path(name)
+    if defined?(javascript_path)
+      javascript_path(name)
+    else
+      "/assets/#{name}"
+    end
   end
 end
