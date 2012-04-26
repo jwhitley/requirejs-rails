@@ -1,6 +1,12 @@
 require 'requirejs/error'
 
 module RequirejsHelper
+  # EXPERIMENTAL: Additional priority settings appended to
+  # any user-specified priority setting by requirejs_include_tag.
+  # Used for JS test suite integration.
+  mattr_accessor :_priority
+  @@_priority = []
+
   def _requirejs_data(name, &block)
     {}.tap do |data|
       if name
@@ -35,7 +41,12 @@ module RequirejsHelper
 
     _once_guard do
       unless requirejs.run_config.empty?
-        run_config = requirejs.run_config
+        run_config = requirejs.run_config.dup
+        unless _priority.empty?
+          run_config = run_config.dup
+          run_config[:priority] ||= []
+          run_config[:priority].concat _priority
+        end
         if Rails.application.config.assets.digest
           modules = requirejs.build_config['modules'].map { |m| requirejs.module_name_for m }
 
