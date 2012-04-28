@@ -1,3 +1,7 @@
+# v0.7.4pre
+
+- This branch tracks the RequireJS and r.js dev2.0 branches.
+
 # v0.7.3
 
 - Upgrade RequireJS and r.js to v1.0.8
