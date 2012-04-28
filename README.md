@@ -186,6 +186,14 @@ This will generate a script tag like so:
 <script data-main="/assets/page1.js" data-foo="..." data-bar="..." src="/assets/require.js"></script>
 ```
 
+## Troubleshooting
+
+### Avoid `config.assets.precompile`
+
+Don't set `config.assets.precompile` to reference any of your AMD module code.
+Avoid it altogether, except to reference non-AMD code that you're loading via
+javascript_include_tag, and which is **never** referenced by the AMD codebase.
+
 ## Using AMD libraries
 
 I currently recommend placing your AMD libraries into `vendor/assets/javascripts`.  The needs of a few specific libraries are discussed below.
