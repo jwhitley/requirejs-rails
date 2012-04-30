@@ -114,8 +114,11 @@ module Requirejs::Rails
     end
 
     def run_config
-      run_config = { "baseUrl" => "/assets" }
-      run_config.merge!(self.user_config).slice(*self.run_config_whitelist)
+      unless self.has_key(:run_config)
+        self[:run_config] = { "baseUrl" => "/assets" }
+        self[:run_config].merge!(self.user_config).slice!(*self.run_config_whitelist)
+      end
+      self[:run_config]
     end
 
     def user_config=(cfg)
