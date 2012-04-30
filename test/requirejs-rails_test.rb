@@ -80,7 +80,27 @@ class RequirejsRailsConfigTest < ActiveSupport::TestCase
     assert_nil @cfg.build_config['priority'] 
   end
 
-  ## Almond tests
+  test "build config should replace urls in paths with 'empty:'" do
+    @cfg.user_config = { 'paths' => 
+      { 
+        'jquery' => 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js',
+        'jqueryssl' => 'https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js'
+      }
+    }
+    assert_equal 'empty:', @cfg.build_config['paths']['jquery']
+    assert_equal 'empty:', @cfg.build_config['paths']['jqueryssl']
+  end
+
+  test "build_config should not modify non-urls in paths" do
+    @cfg.user_config = { 'paths' => 
+      { 
+        'foo' => 'components/foo'
+      }
+    }
+    assert_equal 'components/foo', @cfg.build_config['paths']['foo']
+  end
+
+  ## Almond-specific tests
   test "build_config with almond should accept one module" do
     @cfg.loader = :almond
     @cfg.user_config = { 'modules' => [ { 'name' => 'foo' } ] }
