@@ -26,6 +26,8 @@ module Requirejs::Rails
       self.driver_template_path = Pathname.new(__FILE__+'/../rjs_driver.js.erb').cleanpath
       self.driver_path = self.tmp_dir + 'rjs_driver.js'
 
+      self.user_config = {}
+
       self.run_config_whitelist = %w{
         baseUrl
         callback
@@ -113,6 +115,13 @@ module Requirejs::Rails
     def run_config
       run_config = { "baseUrl" => "/assets" }
       run_config.merge!(self.user_config).slice(*self.run_config_whitelist)
+    end
+
+    def user_config=(cfg)
+      if url = cfg.delete('baseUrl')
+        raise Requirejs::ConfigError, "baseUrl is not needed or permitted in the configuration"
+      end
+      self[:user_config] = cfg
     end
 
     def module_name_for(mod)

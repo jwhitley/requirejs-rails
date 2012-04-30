@@ -44,6 +44,57 @@ class RequirejsRailsConfigTest < ActiveSupport::TestCase
     @cfg.logical_asset_filter += [/\.frobnitz$/]
     assert_equal true, @cfg.asset_allowed?('bar.frobnitz')
   end
+
+  test "should have a default empty user_config" do
+    assert_kind_of Hash, @cfg.user_config
+  end
+
+  test "user_config should reject baseUrl" do
+    exc = assert_raises Requirejs::ConfigError do
+      @cfg.user_config = { "baseUrl" => "/frobnitz" }
+    end
+    assert_match /baseUrl is not needed/, exc.message
+  end
+
+  test "run_config should inherit user_config settings" do
+    @cfg.user_config = { 'paths' => { 'jquery' => 'lib/jquery-1.7.2.min' } }
+    refute_nil @cfg.run_config['paths']
+    assert_kind_of Hash, @cfg.run_config['paths']
+    assert_equal 'lib/jquery-1.7.2.min', @cfg.run_config['paths']['jquery']
+  end
+
+  test "build_config should inherit user_config settings" do
+    @cfg.user_config = { 'paths' => { 'jquery' => 'lib/jquery-1.7.2.min' } }
+    refute_nil @cfg.build_config['paths']
+    assert_kind_of Hash, @cfg.build_config['paths']
+    assert_equal 'lib/jquery-1.7.2.min', @cfg.build_config['paths']['jquery']
+  end
+
+  test "run_config should reject irrelevant settings" do
+    @cfg.user_config = { 'optimize' => 'none' }
+    assert_nil @cfg.run_config['optimize'] 
+  end
+
+  test "build_config should reject irrelevant settings" do
+    @cfg.user_config = { 'priority' => %w{ foo bar baz } }
+    assert_nil @cfg.build_config['priority'] 
+  end
+
+  ## Almond tests
+  test "build_config with almond should accept one module" do
+    @cfg.loader = :almond
+    @cfg.user_config = { 'modules' => [ { 'name' => 'foo' } ] }
+    assert_match 'almond', @cfg.build_config['modules'][0]['name']
+  end
+
+  test "build_config with almond must reject more than one module" do
+    @cfg.loader = :almond
+    @cfg.user_config = { 'modules' => [ { 'name' => 'foo' }, { 'name' => 'bar' } ] }
+    exc = assert_raises Requirejs::ConfigError do
+      @cfg.build_config
+    end
+    assert_match /requires exactly one module/, exc.message
+  end
 end
 
 class RequirejsHelperTest < ActionView::TestCase
