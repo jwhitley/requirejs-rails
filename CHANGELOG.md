@@ -1,3 +1,9 @@
+# v0.8.0
+
+- Build will now substitute `empty:` for the right-hand side of
+  `config/requirejs.yml` paths entries that are URLs.
+- Documented how to configure assets hosted on a CDN.
+
 # v0.7.3
 
 - Upgrade RequireJS and r.js to v1.0.8

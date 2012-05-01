@@ -54,7 +54,10 @@ module RequirejsHelper
           paths = {}
           modules.each { |m| paths[m] = _javascript_path(m).sub /\.js$/,'' }
 
-          # Override uesr paths, whose mappings are only relevant in dev mode
+          # Add paths for assets specified by full URL (on a CDN)
+          run_config['paths'].each { |k,v| paths[k] = v if v =~ /^https?:/ }
+
+          # Override user paths, whose mappings are only relevant in dev mode
           # and in the build_config.
           run_config['paths'] = paths
         end
