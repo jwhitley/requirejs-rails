@@ -186,6 +186,38 @@ This will generate a script tag like so:
 <script data-main="/assets/page1.js" data-foo="..." data-bar="..." src="/assets/require.js"></script>
 ```
 
+### External domain (CDN) support
+
+There are two ways in which requirejs-rails supports the use of different
+domains for serving built JavaScript modules, as is the case when using
+a [CDN](http://en.wikipedia.org/wiki/Content_delivery_network).
+
+1.  URLs in paths config in `requirejs.yml`:
+
+    If requirejs-rails encounters an URL as the right-hand side of a paths
+    configuration, it will correctly emit that as `"empty:"` during the build
+    process so that [r.js will do the right thing](http://requirejs.org/docs/optimization.html#empty).
+
+    Example:
+
+    ```yaml
+    paths:
+      jquery: "https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"
+    ```
+
+2.  Deploying all requirejs-rails assets to a CDN:
+
+    In `config/environments/production.rb` (or another environment)
+    set the run_config as follows:
+
+    ```ruby
+    config.requirejs.run_config['baseUrl'] = 'http://mycdn.example.com/12345abc/assets'
+    ```
+
+    The [`asset_sync` gem](https://github.com/rumblelabs/asset_sync) is one
+    tool that can be used to deploy your built assets to a CDN (S3, in this
+    case).
+
 ## Troubleshooting
 
 ### Avoid `config.assets.precompile`
@@ -196,7 +228,9 @@ javascript_include_tag, and which is **never** referenced by the AMD codebase.
 
 ## Using AMD libraries
 
-I currently recommend placing your AMD libraries into `vendor/assets/javascripts`.  The needs of a few specific libraries are discussed below.
+I currently recommend placing your AMD libraries into
+`vendor/assets/javascripts`.  The needs of a few specific libraries are
+discussed below.
 
 ### jQuery
 

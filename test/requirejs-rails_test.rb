@@ -51,7 +51,7 @@ class RequirejsRailsConfigTest < ActiveSupport::TestCase
 
   test "user_config should reject baseUrl" do
     exc = assert_raises Requirejs::ConfigError do
-      @cfg.user_config = { "baseUrl" => "/frobnitz" }
+      @cfg.user_config = { 'baseUrl' => '/frobnitz' }
     end
     assert_match /baseUrl is not needed/, exc.message
   end
@@ -61,6 +61,11 @@ class RequirejsRailsConfigTest < ActiveSupport::TestCase
     refute_nil @cfg.run_config['paths']
     assert_kind_of Hash, @cfg.run_config['paths']
     assert_equal 'lib/jquery-1.7.2.min', @cfg.run_config['paths']['jquery']
+  end
+
+  test "run_config should allow settings to be overridden" do
+    @cfg.run_config['baseUrl'] = 'http://cdn.example.com/assets'
+    assert_equal 'http://cdn.example.com/assets', @cfg.run_config['baseUrl']
   end
 
   test "build_config should inherit user_config settings" do
@@ -80,7 +85,27 @@ class RequirejsRailsConfigTest < ActiveSupport::TestCase
     assert_nil @cfg.build_config['priority'] 
   end
 
-  ## Almond tests
+  test "build config should replace urls in paths with 'empty:'" do
+    @cfg.user_config = { 'paths' => 
+      { 
+        'jquery' => 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js',
+        'jqueryssl' => 'https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js'
+      }
+    }
+    assert_equal 'empty:', @cfg.build_config['paths']['jquery']
+    assert_equal 'empty:', @cfg.build_config['paths']['jqueryssl']
+  end
+
+  test "build_config should not modify non-urls in paths" do
+    @cfg.user_config = { 'paths' => 
+      { 
+        'foo' => 'components/foo'
+      }
+    }
+    assert_equal 'components/foo', @cfg.build_config['paths']['foo']
+  end
+
+  ## Almond-specific tests
   test "build_config with almond should accept one module" do
     @cfg.loader = :almond
     @cfg.user_config = { 'modules' => [ { 'name' => 'foo' } ] }
@@ -101,6 +126,10 @@ class RequirejsHelperTest < ActionView::TestCase
   
   def setup
     controller.requirejs_included = false
+    Rails.application.config.requirejs.user_config = { 'paths' => 
+      { 'jquery' => 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js' }
+    }
+
   end
   
   def wrap(tag)
@@ -131,6 +160,22 @@ class RequirejsHelperTest < ActionView::TestCase
   test "requirejs_include_tag can appear only once" do
     assert_raises Requirejs::MultipleIncludeError do
       render :text => "#{requirejs_include_tag}\n#{requirejs_include_tag}"
+    end
+  end
+
+  test "requirejs_include_tag with CDN asset in paths" do
+    render :text => wrap(requirejs_include_tag)
+    assert_select "script:first-of-type", :text => %r{var require =.*paths.*http://ajax}
+  end
+
+  test "requirejs_include_tag with CDN asset and digested asset paths" do
+    begin
+      saved_digest = Rails.application.config.assets.digest
+      Rails.application.config.assets.digest = true
+      render :text => wrap(requirejs_include_tag)
+      assert_select "script:first-of-type", :text => %r{var require =.*paths.*http://ajax}
+    ensure
+      Rails.application.config.assets.digest = saved_digest
     end
   end
 end
