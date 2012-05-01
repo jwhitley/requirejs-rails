@@ -1,3 +1,5 @@
+Marked Style: GitHub
+
 # v0.8.0
 
 - Build will now substitute `empty:` for the right-hand side of
