@@ -1,3 +1,6 @@
+<!--
+Marked Style: GitHub
+-->
 # RequireJS for Rails
 
 Integrates [RequireJS](http://requirejs.org/) into the Rails 3 Asset Pipeline.
