@@ -174,7 +174,7 @@ class RequirejsHelperTest < ActionView::TestCase
       Rails.application.config.assets.digest = true
       Rails.application.config.requirejs.user_config = { 'modules' => [{'name' => 'foo'}] }
       render :text => wrap(requirejs_include_tag)
-      assert_select "script:first-of-type", :text => %r{var require =.*paths.*http://ajax}
+      assert_select "script:first-of-type", :text => %r[var require =.*"paths":{"foo":"/javascripts/foo"}]
     ensure
       Rails.application.config.assets.digest = saved_digest
     end
