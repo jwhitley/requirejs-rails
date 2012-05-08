@@ -126,10 +126,15 @@ class RequirejsHelperTest < ActionView::TestCase
   
   def setup
     controller.requirejs_included = false
+    Rails.application.config.requirejs.user_config = {}
+    Rails.application.config.requirejs.delete(:run_config)
+    Rails.application.config.requirejs.delete(:build_config)
+  end
+
+  def with_cdn
     Rails.application.config.requirejs.user_config = { 'paths' => 
       { 'jquery' => 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js' }
     }
-
   end
   
   def wrap(tag)
@@ -163,13 +168,27 @@ class RequirejsHelperTest < ActionView::TestCase
     end
   end
 
+  test "requirejs_include_tag with digested asset paths" do
+    begin
+      saved_digest = Rails.application.config.assets.digest
+      Rails.application.config.assets.digest = true
+      Rails.application.config.requirejs.user_config = { 'modules' => [{'name' => 'foo'}] }
+      render :text => wrap(requirejs_include_tag)
+      assert_select "script:first-of-type", :text => %r{var require =.*paths.*http://ajax}
+    ensure
+      Rails.application.config.assets.digest = saved_digest
+    end
+  end
+
   test "requirejs_include_tag with CDN asset in paths" do
+    with_cdn
     render :text => wrap(requirejs_include_tag)
     assert_select "script:first-of-type", :text => %r{var require =.*paths.*http://ajax}
   end
 
   test "requirejs_include_tag with CDN asset and digested asset paths" do
     begin
+      with_cdn
       saved_digest = Rails.application.config.assets.digest
       Rails.application.config.assets.digest = true
       render :text => wrap(requirejs_include_tag)
