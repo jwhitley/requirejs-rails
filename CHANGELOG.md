@@ -1,6 +1,10 @@
 <!--
 Marked Style: GitHub
 -->
+# v0.8.2
+
+- Fix for `requirejs_include_tag` error when `config/requirejs.yml` has no
+  `paths` key.  Thanks to @JustinLove for the issue and failing test!
 
 # v0.8.0
 
