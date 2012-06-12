@@ -43,6 +43,7 @@ module Requirejs::Rails
         urlArgs
         waitSeconds
         xhtml
+        shim
       }
 
       self.build_config_whitelist = %w{
@@ -80,6 +81,7 @@ module Requirejs::Rails
         uglify
         useStrict
         wrap
+        shim
       }
     end
 
