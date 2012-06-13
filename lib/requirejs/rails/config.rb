@@ -40,6 +40,7 @@ module Requirejs::Rails
         paths
         priority
         scriptType
+        shim
         urlArgs
         waitSeconds
         xhtml
@@ -75,6 +76,7 @@ module Requirejs::Rails
         pragmas
         pragmasOnSave
         preserveLicenseComments
+        shim
         skipModuleInsertion
         skipPragmas
         uglify
