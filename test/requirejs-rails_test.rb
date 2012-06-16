@@ -85,27 +85,7 @@ class RequirejsRailsConfigTest < ActiveSupport::TestCase
     assert_nil @cfg.build_config['priority'] 
   end
 
-  test "build config should replace urls in paths with 'empty:'" do
-    @cfg.user_config = { 'paths' => 
-      { 
-        'jquery' => 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js',
-        'jqueryssl' => 'https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js'
-      }
-    }
-    assert_equal 'empty:', @cfg.build_config['paths']['jquery']
-    assert_equal 'empty:', @cfg.build_config['paths']['jqueryssl']
-  end
-
-  test "build_config should not modify non-urls in paths" do
-    @cfg.user_config = { 'paths' => 
-      { 
-        'foo' => 'components/foo'
-      }
-    }
-    assert_equal 'components/foo', @cfg.build_config['paths']['foo']
-  end
-
-  ## Almond-specific tests
+  ## Almond tests
   test "build_config with almond should accept one module" do
     @cfg.loader = :almond
     @cfg.user_config = { 'modules' => [ { 'name' => 'foo' } ] }
@@ -149,7 +129,7 @@ class RequirejsHelperTest < ActionView::TestCase
   
   test "requirejs_include_tag_with_param" do
     render :text => wrap(requirejs_include_tag("application"))
-    assert_select "script:last-of-type[src^=/javascripts/require.js][data-main^=/javascripts/application.js]", :count => 1
+    assert_select "script:last-of-type[src^=/javascripts/require.js][data-main^=/javascripts/application]", :count => 1
   end
   
   test "requirejs_include_tag_with_block" do
@@ -158,7 +138,7 @@ class RequirejsHelperTest < ActionView::TestCase
     end
 
     render :text => wrap(requirejs_include_tag("application", &test_block))
-    assert_select "script:last-of-type[src^=/javascripts/require.js][data-main^=/javascripts/application.js]", :count => 1
+    assert_select "script:last-of-type[src^=/javascripts/require.js][data-main^=/javascripts/application]", :count => 1
     assert_select "script:last-of-type[src^=/javascripts/require.js][data-class^=TestController]", :count => 1
   end
 

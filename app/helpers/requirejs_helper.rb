@@ -11,22 +11,13 @@ module RequirejsHelper
     {}.tap do |data|
       if name
         name += ".js" unless name =~ /\.js$/
-        data['main'] = _javascript_path(name)
+        data['main'] = _javascript_path(name).sub(/\.js$/,'')
       end
 
       data.merge!(yield controller) if block_given?
     end.map do |k, v|
       %Q{data-#{k}="#{v}"}
     end.join(" ")
-  end
-
-  def _data_main(name)
-    if name
-      name += ".js" unless name =~ /\.js$/
-      %Q{data-main="#{_javascript_path(name)}"}
-    else
-      ""
-    end
   end
 
   def requirejs_include_tag(name=nil, &block)
