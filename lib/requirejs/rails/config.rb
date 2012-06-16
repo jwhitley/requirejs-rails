@@ -40,6 +40,7 @@ module Requirejs::Rails
         paths
         priority
         scriptType
+        shim
         urlArgs
         waitSeconds
         xhtml
@@ -75,6 +76,7 @@ module Requirejs::Rails
         pragmas
         pragmasOnSave
         preserveLicenseComments
+        shim
         skipModuleInsertion
         skipPragmas
         uglify
@@ -108,7 +110,6 @@ module Requirejs::Rails
           mod['name'] = 'almond'
           mod['include'] = name
         end
-        self.rewrite_urls_in_paths self[:build_config]
       end
       self[:build_config]
     end
@@ -149,14 +150,6 @@ module Requirejs::Rails
       self.logical_asset_filter.reduce(false) do |accum, matcher|
         accum || (matcher =~ asset)
       end ? true : false
-    end
-
-    def rewrite_urls_in_paths(cfg)
-      if cfg.has_key? 'paths'
-        cfg['paths'] = cfg['paths'].each_with_object({}) do |(k, v), h|
-          h[k] = (v =~ /^https?:/) ? 'empty:' : v
-        end
-      end
     end
   end
 end

@@ -264,6 +264,11 @@ Usage changes that may break functionality for those upgrading along the 0.x
 series are documented here. See [the Changelog](https://github.com/jwhitley/requirejs-rails/blob/master/CHANGELOG.md) for the full
 list of feature additions, bugfixes, etc.
 
+### v0.9.0
+
+- The upgrade to RequireJS and r.js 2.0 includes changes that will break some
+  apps.
+
 ### v0.5.1
 
 - `requirejs_include_tag` now generates a data-main attribute if given an argument, ala:
@@ -291,4 +296,4 @@ to see what's upcoming and to file feature requests and bug reports.
 
 ----
 
-Copyright 2011 John Whitley.  See the file MIT-LICENSE for terms.
+Copyright 2011-2012 John Whitley.  See the file MIT-LICENSE for terms.

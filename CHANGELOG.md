@@ -1,6 +1,12 @@
 <!--
 Marked Style: GitHub
 -->
+# v0.9.0
+
+- **BREAKING CHANGE**: Upgrade RequireJS and r.js to v2.0.0
+- order.js was removed. See the new [RequireJS 2.0 shim config](https://github.com/jrburke/requirejs/wiki/Upgrading-to-RequireJS-2.0#wiki-shim).
+- Build support for `empty:` is now handled by r.js 2.0 natively.
+
 # v0.8.2
 
 - Fix for `requirejs_include_tag` error when `config/requirejs.yml` has no
