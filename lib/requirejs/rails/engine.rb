@@ -17,7 +17,7 @@ module Requirejs
         # config parameters.
         config.requirejs.user_config_file = Pathname.new(app.paths["config"].first)+'requirejs.yml'
         if config.requirejs.user_config_file.exist?
-          config.requirejs.user_config = YAML.load(config.requirejs.user_config_file.read)
+          config.requirejs.user_config = YAML.load(ERB.new(config.requirejs.user_config_file.read).result)
         else
           config.requirejs.user_config = {}
         end
@@ -43,7 +43,7 @@ module Requirejs
       initializer "requirejs.manifest", :after => "sprockets.environment" do |app|
         config = app.config
         if config.requirejs.manifest_path.exist? && config.assets.digests
-          rjs_digests = YAML.load_file(config.requirejs.manifest_path)
+          rjs_digests = YAML.load(ERB.new(File.new(config.requirejs.manifest_path).read).result)
           config.assets.digests.merge!(rjs_digests)
         end
       end
