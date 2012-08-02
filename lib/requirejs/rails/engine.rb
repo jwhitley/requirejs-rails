@@ -50,7 +50,7 @@ module Requirejs
       end
 
       initializer "requirejs.amd_wrap", :after => "sprockets.environment", :group => :all do |app|
-        app.assets.register_postprocessor 'application/javascript', AMD
+        app.assets.register_postprocessor 'application/javascript', AMD if app.assets
       end
 
     end # class Engine
