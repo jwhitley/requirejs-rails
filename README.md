@@ -237,7 +237,7 @@ discussed below.
 
 ### jQuery
 
-jQuery users must use jQuery 1.7 or later (`jquery-rails >= 1.0.17`) to use it as an [AMD module](http://wiki.commonjs.org/wiki/Modules/AsynchronousDefinition) with RequireJS.  To use jQuery in a module:
+jQuery users must use jQuery 1.7 or later (`jquery-rails >= 1.0.17`) to use it as an [AMD module](https://github.com/amdjs/amdjs-api/wiki/AMD) with RequireJS.  To use jQuery in a module:
 
 ```coffeescript
 # app/assets/javascripts/hello.js
