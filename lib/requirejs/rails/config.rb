@@ -36,6 +36,7 @@ module Requirejs::Rails
         deps
         jQuery
         locale
+        map
         packages
         paths
         priority
@@ -61,6 +62,7 @@ module Requirejs::Rails
         inlineText
         locale
         mainConfigFile
+        map
         modules
         name
         namespace
