@@ -27,7 +27,8 @@ module Requirejs
         config = app.config
         config.assets.precompile += config.requirejs.precompile
 
-        manifest_path = File.join(::Rails.public_path, config.assets.prefix, "rjs_manifest.yml")
+        manifest_directory = config.assets.manifest || File.join(::Rails.public_path, config.assets.prefix)
+        manifest_path      = File.join(manifest_directory, "rjs_manifest.yml")
         config.requirejs.manifest_path = Pathname.new(manifest_path)
       end
 
