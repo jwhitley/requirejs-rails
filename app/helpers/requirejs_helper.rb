@@ -11,7 +11,10 @@ module RequirejsHelper
     {}.tap do |data|
       if name
         name += ".js" unless name =~ /\.js$/
-        data['main'] = _javascript_path(name).sub(/\.js$/,'')
+        data['main'] = _javascript_path(name).
+                        sub(/\.js$/,'').
+                        sub(baseUrl(name), '').
+                        sub(/\A\//, '')
       end
 
       data.merge!(yield controller) if block_given?
@@ -54,6 +57,8 @@ module RequirejsHelper
           # and in the build_config.
           run_config['paths'] = paths
         end
+
+        run_config['baseUrl'] = baseUrl(name)
         html.concat <<-HTML
         <script>var require = #{run_config.to_json};</script>
         HTML
@@ -88,5 +93,12 @@ module RequirejsHelper
     else
       "/assets/#{name}"
     end
+  end
+
+  def baseUrl(js_asset)
+    js_asset_path = javascript_path(js_asset)
+    uri = URI.parse(js_asset_path)
+    asset_host = uri.host && js_asset_path.sub(uri.request_uri, '')
+    [asset_host, Rails.application.config.assets.prefix].join
   end
 end
