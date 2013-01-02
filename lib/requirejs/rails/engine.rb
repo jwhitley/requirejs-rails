@@ -15,7 +15,13 @@ module Requirejs
         # merged with the default params.  It should be a YAML file with
         # a single top-level hash, keys/values corresponding to require.js
         # config parameters.
-        config.requirejs.user_config_file = Pathname.new(app.paths["config"].first)+'requirejs.yml'
+        config_path = Pathname.new(app.paths["config"].first)
+        config.requirejs.user_config_file = config_path+'requirejs.yml'
+        # If requirejs.yml doesn't exist, fall back to requirejs.yml.erb
+        unless config.requirejs.user_config_file.exist?
+          config.requirejs.user_config_file = config_path+'requirejs.yml.erb'
+        end
+
         if config.requirejs.user_config_file.exist?
           config.requirejs.user_config = YAML.load(ERB.new(config.requirejs.user_config_file.read).result)
         else
