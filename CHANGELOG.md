@@ -3,7 +3,7 @@ Marked Style: GitHub
 -->
 # v0.9.1
 
-- Updated to to require.js \ r.js 2.1.2, and almond 0.2.2
+- Updated to to require.js \ r.js 2.1.2, and almond 0.2.3
 
 # v0.9.0
 
