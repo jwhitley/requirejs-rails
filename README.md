@@ -65,7 +65,7 @@ Integrates [RequireJS](http://requirejs.org/) into the Rails 3 Asset Pipeline.
 6.  When ready, build your assets for production deployment as usual.
     `requirejs-rails` defaults to a single-file build of `application.js`.
     Additional modules and r.js layered builds may be specified via
-    `config\requirejs.yml`; see the Configuration section below.
+    `config/requirejs.yml`; see the Configuration section below.
 
     ```rake assets:precompile```
 
