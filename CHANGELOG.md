@@ -1,6 +1,10 @@
 <!--
 Marked Style: GitHub
 -->
+# v0.9.1
+
+- Updated to to require.js \ r.js 2.1.2, and almond 0.2.2
+
 # v0.9.0
 
 - **BREAKING CHANGE**: Upgrade RequireJS and r.js to v2.0.0
