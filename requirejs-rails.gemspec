@@ -18,8 +18,8 @@ Gem::Specification.new do |s|
   s.files = git_files
   s.require_path = 'lib'  
 
-  s.add_dependency "railties", ">= 3.1.1", "< 3.3"
-  s.add_development_dependency "rails", ">= 3.1.1", "<= 3.3"
+  s.add_dependency "railties", ">= 3.1.1", "< 4.1"
+  s.add_development_dependency "rails", ">= 3.1.1", "< 4.1"
   s.add_development_dependency "sqlite3"
 
   s.requirements << "node.js is required for 'rake assets:precompile', used to run the r.js build"
