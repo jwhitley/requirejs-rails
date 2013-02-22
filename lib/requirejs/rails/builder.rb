@@ -16,7 +16,11 @@ module Requirejs::Rails
     end
 
     def digest_for(path)
-      Rails.application.assets.file_digest(path).hexdigest
+      if !Rails.application.assets.file_digest(path).nil?
+        Rails.application.assets.file_digest(path).hexdigest
+      else
+        puts "Asset digest not found:", path
+      end
     end
 
     def generate_rjs_driver
