@@ -19,7 +19,7 @@ module Requirejs::Rails
       if !Rails.application.assets.file_digest(path).nil?
         Rails.application.assets.file_digest(path).hexdigest
       else
-        puts "Asset digest not found:", path
+        raise Requirejs::BuildError, "Cannot compute digest for missing asset: #{path}"
       end
     end
 
