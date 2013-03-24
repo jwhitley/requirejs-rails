@@ -49,8 +49,8 @@ module RequirejsHelper
           modules.each { |m| paths[m] = _javascript_path(m).sub /\.js$/,'' }
 
           if run_config.has_key? 'paths'
-            # Add paths for assets specified by full URL (on a CDN)
-            run_config['paths'].each { |k,v| paths[k] = v if v =~ /^https?:/ }
+            # Add paths for external assets (CDN URLs, etc.)
+            run_config['paths'].each { |k,v| paths[k] = v if v =~ %r{^(\w+:|//)} }
           end
 
           # Override user paths, whose mappings are only relevant in dev mode
