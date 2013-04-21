@@ -27,7 +27,7 @@ module RequirejsHelper
     requirejs = Rails.application.config.requirejs
 
     if requirejs.loader == :almond
-      if name.nil?
+      if name.blank?
         # assume the first module if none is specified
         name = requirejs.module_name_for(requirejs.build_config['modules'][0])
       end
