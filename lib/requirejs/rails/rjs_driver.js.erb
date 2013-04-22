@@ -33,7 +33,6 @@ var errback = function(error) {
 // builds.  Anticipating that need.
 var async_runner = module_specs.reduceRight(function(prev, curr) {
   return function (buildReportText) { 
-    requirejs.optimize(mix(curr), prev);
     requirejs.optimize(mix(curr), prev, errback);
   };
 }, function(buildReportText) {} );
