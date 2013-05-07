@@ -26,6 +26,9 @@ module Requirejs::Rails
       self.driver_template_path = Pathname.new(__FILE__+'/../rjs_driver.js.erb').cleanpath
       self.driver_path = self.tmp_dir + 'rjs_driver.js'
 
+      self.amd_wrap_filter = [/\.module\.js$/]
+      self.amd_wrap_template = "define(function(require,exports,module) {\n%s\n;});\n"
+
       self.user_config = {}
 
       self.run_config_whitelist = %w{

@@ -1,4 +1,5 @@
 require 'requirejs/rails/config'
+require 'requirejs/rails/amd'
 
 require 'pathname'
 
@@ -41,6 +42,10 @@ module Requirejs
           rjs_digests = YAML.load(ERB.new(File.new(config.requirejs.manifest_path).read).result)
           config.assets.digests.merge!(rjs_digests)
         end
+      end
+
+      initializer "requirejs.amd_wrap", :after => "sprockets.environment", :group => :all do |app|
+        app.assets.register_postprocessor 'application/javascript', AMD if app.assets
       end
 
       private
