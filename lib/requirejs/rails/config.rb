@@ -35,6 +35,7 @@ module Requirejs::Rails
         baseUrl
         callback
         catchError
+        config
         context
         deps
         jQuery
