@@ -221,6 +221,27 @@ a [CDN](http://en.wikipedia.org/wiki/Content_delivery_network).
     tool that can be used to deploy your built assets to a CDN (S3, in this
     case).
 
+### CommonJS wrapping
+
+In most cases the built-in shim configuration is enough to handle external libraries,
+however in some cases it can be helpful to automatically wrap a CommonJS (CJS) library
+in the ``define(function(require, exports, module) { ... })`` declaration so RequireJS
+can load the module directly. This can be accomplished by adding paths, or regular expressions
+to the `amd_wrap_filter` config setting:
+
+```ruby
+# in config/application.rb
+config.requirejs.amd_wrap_filter << /^mylib\//
+```
+
+You can also customize the wrapping declaration via the `amd_wrap_template`
+config setting:
+
+```ruby
+# in config/application.rb
+config.requirejs.amd_wrap_template = "define(function(require,exports,module) {\n%s\n;});\n"
+```
+
 ## Troubleshooting
 
 ### Avoid `config.assets.precompile`
