@@ -27,7 +27,10 @@ module RequirejsHelper
     requirejs = Rails.application.config.requirejs
 
     if requirejs.loader == :almond
-      name = requirejs.module_name_for(requirejs.build_config['modules'][0])
+      if name.blank?
+        # assume the first module if none is specified
+        name = requirejs.module_name_for(requirejs.build_config['modules'][0])
+      end
       return _almond_include_tag(name, &block)
     end
 
@@ -60,7 +63,7 @@ module RequirejsHelper
 
         run_config['baseUrl'] = baseUrl(name)
         html.concat <<-HTML
-        <script>var require = #{run_config.to_json};</script>
+        <script>var require = #{ JSON.dump(run_config) };</script>
         HTML
       end
 
