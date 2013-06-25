@@ -63,7 +63,7 @@ module RequirejsHelper
 
         run_config['baseUrl'] = baseUrl(name)
         html.concat <<-HTML
-        <script>var require = #{run_config.to_json};</script>
+        <script>var require = #{ JSON.dump(run_config) };</script>
         HTML
       end
 
