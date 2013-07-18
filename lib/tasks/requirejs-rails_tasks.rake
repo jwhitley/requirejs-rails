@@ -32,7 +32,7 @@ namespace :requirejs do
   end
 
   task :setup => ["assets:environment"] do
-    unless Rails.application.config.assets.enabled
+    unless defined?(Sprockets)
       warn "Cannot precompile assets if sprockets is disabled. Please set config.assets.enabled to true"
       exit
     end
