@@ -35,11 +35,26 @@ module Requirejs
         end
       end
 
-      initializer "requirejs.manifest", :after => "sprockets.environment" do |app|
-        config = app.config
-        if config.requirejs.manifest_path.exist? && config.assets.digests
-          rjs_digests = YAML.load(ERB.new(File.new(config.requirejs.manifest_path).read).result)
-          config.assets.digests.merge!(rjs_digests)
+      if ::Rails::VERSION::STRING >= "4.0.0"
+        config.after_initialize do |app|
+          config = app.config
+          rails_manifest_path = File.join(app.root, 'public', config.assets.prefix)
+          rails_manifest = Sprockets::Manifest.new(app.assets, rails_manifest_path)
+          if config.requirejs.manifest_path.exist? && rails_manifest
+            rjs_digests = YAML.load(ERB.new(File.new(config.requirejs.manifest_path).read).result)
+            rails_manifest.assets.merge!(rjs_digests)
+            ActionView::Base.instance_eval do
+              self.assets_manifest = rails_manifest
+            end
+          end
+        end
+      else
+        initializer "requirejs.manifest", :after => "sprockets.environment" do |app|
+          config = app.config
+          if config.requirejs.manifest_path.exist? && config.assets.digests
+            rjs_digests = YAML.load(ERB.new(File.new(config.requirejs.manifest_path).read).result)
+            config.assets.digests.merge!(rjs_digests)
+          end
         end
       end
 
