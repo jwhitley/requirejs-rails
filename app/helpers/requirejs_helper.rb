@@ -68,8 +68,6 @@ module RequirejsHelper
       <script #{_requirejs_data(name, &block)} src="#{_javascript_path 'require.js'}"></script>
       HTML
 
-      AppboyLogger.info {"Built requirejs_include_tag as #{html.html_safe}"}
-
       html.html_safe
     end
   end
