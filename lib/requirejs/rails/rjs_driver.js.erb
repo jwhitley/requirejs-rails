@@ -32,8 +32,7 @@ var errback = function(error) {
 // r.js will eventually need a nested call idiom to handle async 
 // builds.  Anticipating that need.
 var async_runner = module_specs.reduceRight(function(prev, curr) {
-  return function (buildReportText) { 
-    requirejs.optimize(mix(curr), prev);
+  return function (buildReportText) {
     requirejs.optimize(mix(curr), prev, errback);
   };
 }, function(buildReportText) {} );
