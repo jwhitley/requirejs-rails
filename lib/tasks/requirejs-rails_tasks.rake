@@ -10,6 +10,14 @@ require 'tempfile'
 require 'active_support/ordered_options'
 
 namespace :requirejs do
+  # This method was backported from an earlier version of Sprockets.
+  def ruby_rake_task(task)
+    env = ENV["RAILS_ENV"] || "production"
+    groups = ENV["RAILS_GROUPS"] || "assets"
+    args = [$0, task, "RAILS_ENV=#{env}", "RAILS_GROUPS=#{groups}"]
+    args << "--trace" if Rake.application.options.trace
+    ruby *args
+  end
 
   # From Rails 3 assets.rake; we have the same problem:
   #
@@ -17,7 +25,11 @@ namespace :requirejs do
   # and/or no explicit environment - we have to reinvoke rake to
   # execute this task.
   def invoke_or_reboot_rake_task(task)
-    Rake::Task[task].invoke
+    if ENV['RAILS_GROUPS'].to_s.empty? || ENV['RAILS_ENV'].to_s.empty?
+      ruby_rake_task task
+    else
+      Rake::Task[task].invoke
+    end
   end
 
   requirejs = ActiveSupport::OrderedOptions.new
@@ -78,7 +90,7 @@ EOM
     # We depend on test_node here so we'll fail early and hard if node
     # isn't available.
     task :external => ["requirejs:test_node"] do
-      Rake::Task["requirejs:precompile:all"].invoke
+      ruby_rake_task "requirejs:precompile:all"
     end
 
     # copy all assets to tmp/assets
