@@ -5,24 +5,21 @@ require 'pathname'
 module Requirejs
   module Rails
     class Engine < ::Rails::Engine
-
       ### Configuration setup
-      config.before_configuration do
-        config.requirejs = Requirejs::Rails::Config.new
-        config.requirejs.precompile = [/require\.js$/]
-      end
-
       config.before_initialize do |app|
         config = app.config
 
+        config.requirejs = Requirejs::Rails::Config.new
+        config.requirejs.precompile = [/require\.js$/]
+
         # Process the user config file in #before_initalization (instead of #before_configuration) so that
         # environment-specific configuration can be injected into the user configuration file
-        process_user_config_file(app, config)
+        Engine.process_user_config_file(app, config)
 
         config.assets.precompile += config.requirejs.precompile
 
         manifest_directory = config.assets.manifest || File.join(::Rails.public_path, config.assets.prefix)
-        manifest_path      = File.join(manifest_directory, "rjs_manifest.yml")
+        manifest_path = File.join(manifest_directory, "rjs_manifest.yml")
         config.requirejs.manifest_path = Pathname.new(manifest_path)
       end
 
@@ -58,13 +55,11 @@ module Requirejs
         end
       end
 
-      private
-
       # Process the user-supplied config parameters, which will be
       # merged with the default params.  It should be a YAML file with
       # a single top-level hash, keys/values corresponding to require.js
       # config parameters.
-      def process_user_config_file(app, config)
+      def self.process_user_config_file(app, config)
         config_path = Pathname.new(app.paths["config"].first)
         config.requirejs.user_config_file = config_path+'requirejs.yml'
 
