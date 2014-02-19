@@ -6,11 +6,13 @@ module Requirejs
   module Rails
     class Engine < ::Rails::Engine
       ### Configuration setup
+      config.before_configuration do |app|
+        config.requirejs = Requirejs::Rails::Config.new(app)
+        config.requirejs.precompile = [/require\.js$/]
+      end
+
       config.before_initialize do |app|
         config = app.config
-
-        config.requirejs = Requirejs::Rails::Config.new
-        config.requirejs.precompile = [/require\.js$/]
 
         # Process the user config file in #before_initalization (instead of #before_configuration) so that
         # environment-specific configuration can be injected into the user configuration file

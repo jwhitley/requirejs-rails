@@ -9,16 +9,16 @@ module Requirejs::Rails
   class Config < ::ActiveSupport::OrderedOptions
     LOADERS = [ :requirejs, :almond ]
 
-    def initialize
+    def initialize(application)
       super
       self.manifest = nil
 
       self.logical_asset_filter = [/\.js$/,/\.html$/,/\.txt$/]
-      self.tmp_dir = Rails.root + 'tmp'
+      self.tmp_dir = application.root + 'tmp'
       self.bin_dir = Pathname.new(__FILE__+'/../../../../bin').cleanpath
 
       self.source_dir = self.tmp_dir + 'assets'
-      self.target_dir = Rails.root + 'public/assets'
+      self.target_dir = application.root + 'public/assets'
       self.rjs_path   = self.bin_dir+'r.js'
 
       self.loader = :requirejs
