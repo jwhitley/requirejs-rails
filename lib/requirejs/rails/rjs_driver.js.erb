@@ -2,13 +2,19 @@
 var requirejs = require('<%= rjs_path %>'),
   //Set up basic config, include config that is
   //common to all the optimize() calls.
-  basConfig = <%= JSON.pretty_generate(build_config.reject {|k,v| k == 'modules'}) %>;
+  baseConfig = <%=
+    modifiedHash = build_config.select {|k, _| k != "modules"}
+    pathsHash = modifiedHash["paths"]
+    modifiedHash["paths"] = pathsHash.select {|_, v| !v.is_a?(Array)} if !pathsHash.nil?
+
+    JSON.pretty_generate(modifiedHash)
+  %>;
 
 // Function used to mix in baseConfig to a new config target
 function mix(target) {
-  for (var prop in basConfig) {
-    if (basConfig.hasOwnProperty(prop)) {
-      target[prop] = basConfig[prop];
+  for (var prop in baseConfig) {
+    if (baseConfig.hasOwnProperty(prop)) {
+      target[prop] = baseConfig[prop];
     }
   }
   return target;
@@ -32,7 +38,7 @@ var errback = function(error) {
 // r.js will eventually need a nested call idiom to handle async 
 // builds.  Anticipating that need.
 var async_runner = module_specs.reduceRight(function(prev, curr) {
-  return function (buildReportText) { 
+  return function (buildReportText) {
     requirejs.optimize(mix(curr), prev);
     requirejs.optimize(mix(curr), prev, errback);
   };

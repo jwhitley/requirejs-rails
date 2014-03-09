@@ -66,7 +66,7 @@ namespace :requirejs do
 Unable to find 'node' on the current path, required for precompilation
 using the requirejs-ruby gem. To install node.js, see http://nodejs.org/
 OS X Homebrew users can use 'brew install node'.
-EOM
+      EOM
       exit 1
     end
   end
@@ -115,9 +115,9 @@ EOM
                       "requirejs:test_node"] do
       requirejs.config.target_dir.mkpath
 
-      `node "#{requirejs.config.driver_path}"`
+      result = `node "#{requirejs.config.driver_path}"`
       unless $?.success?
-        raise RuntimeError, "Asset compilation with node failed."
+        raise RuntimeError, "Asset compilation with node failed with error:\n\n#{result}\n"
       end
     end
 
@@ -133,7 +133,7 @@ EOM
         FileUtils.cp built_asset_path, digest_asset_path
 
         # Create the compressed versions
-        File.open("#{built_asset_path}.gz",'wb') do |f|
+        File.open("#{built_asset_path}.gz", 'wb') do |f|
           zgw = Zlib::GzipWriter.new(f, Zlib::BEST_COMPRESSION)
           zgw.write built_asset_path.read
           zgw.close
@@ -141,7 +141,7 @@ EOM
         FileUtils.cp "#{built_asset_path}.gz", "#{digest_asset_path}.gz"
 
         requirejs.config.manifest_path.open('wb') do |f|
-          YAML.dump(requirejs.manifest,f)
+          YAML.dump(requirejs.manifest, f)
         end
       end
     end
