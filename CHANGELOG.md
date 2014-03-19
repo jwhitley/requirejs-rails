@@ -1,6 +1,11 @@
 <!--
 Marked Style: GitHub
 -->
+# v0.9.2
+
+- Update `require.js` to `2.1.10` and `almond.js` to `0.2.5`.
+- Rails 4 support.
+
 # v0.9.1
 
 - Updated to to require.js \ r.js 2.1.2, and almond 0.2.3

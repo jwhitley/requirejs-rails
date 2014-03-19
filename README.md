@@ -3,7 +3,7 @@ Marked Style: GitHub
 -->
 # RequireJS for Rails
 
-Integrates [RequireJS](http://requirejs.org/) into the Rails 3 Asset Pipeline.
+Integrates [RequireJS](http://requirejs.org/) into the Rails 3+ Asset Pipeline.
 
 **UPGRADE NOTES:** Users upgrading within the 0.x series should read the Changes section for relevant usage changes.  We're pushing hard to 1.0, when the configuration and setup details will be declared stable.  Until that time expect some bumps as things bake out.
 
@@ -264,6 +264,10 @@ Usage changes that may break functionality for those upgrading along the 0.x
 series are documented here. See [the Changelog](https://github.com/jwhitley/requirejs-rails/blob/master/CHANGELOG.md) for the full
 list of feature additions, bugfixes, etc.
 
+### v0.9.2
+
+- Support for Rails 4.
+
 ### v0.9.0
 
 - The upgrade to RequireJS and r.js 2.0 includes changes that will break some
@@ -296,4 +300,4 @@ to see what's upcoming and to file feature requests and bug reports.
 
 ----
 
-Copyright 2011-2012 John Whitley.  See the file MIT-LICENSE for terms.
+Copyright 2011-2014 John Whitley.  See the file MIT-LICENSE for terms.
