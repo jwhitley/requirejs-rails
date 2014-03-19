@@ -81,7 +81,13 @@ OS X Homebrew users can use 'brew install node'.
       # Ensure that Sprockets doesn't try to compress assets before they hit
       # r.js.  Failure to do this can cause a build which works in dev, but
       # emits require.js "notloaded" errors, etc. in production.
-      Rails.application.config.assets.js_compressor = false
+      #
+      # Note that a configuration block is used here to ensure that it runs
+      # after the environment ("config/application.rb",
+      # "config/environments/*.rb") has been set up.
+      Rails.application.config.assets.configure do |env|
+        env.js_compressor = nil
+      end
     end
 
     # Invoke another ruby process if we're called from inside
