@@ -86,7 +86,7 @@ OS X Homebrew users can use 'brew install node'.
       # after the environment ("config/application.rb",
       # "config/environments/*.rb") has been set up.
       Rails.application.config.assets.configure do |env|
-        env.js_compressor = false
+        env.js_compressor = nil
       end
     end
 
