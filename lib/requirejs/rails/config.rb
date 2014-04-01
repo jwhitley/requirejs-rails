@@ -127,7 +127,7 @@ module Requirejs::Rails
     end
 
     def user_config=(cfg)
-      if url = cfg.delete('baseUrl')
+      if cfg.delete('baseUrl')
         raise Requirejs::ConfigError, "baseUrl is not needed or permitted in the configuration"
       end
       self[:user_config] = cfg
@@ -140,6 +140,10 @@ module Requirejs::Rails
       when :requirejs
         return mod['name']
       end
+    end
+
+    def module_names
+      build_config['modules'].map { |m| module_name_for m }
     end
 
     def module_path_for(mod)
