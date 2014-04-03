@@ -10,13 +10,20 @@ require 'tempfile'
 require 'active_support/ordered_options'
 
 namespace :requirejs do
-  # This method was backported from an earlier version of Sprockets.
-  def ruby_rake_task(task)
-    env = ENV["RAILS_ENV"] || "production"
-    groups = ENV["RAILS_GROUPS"] || "assets"
-    args = [$0, task, "RAILS_ENV=#{env}", "RAILS_GROUPS=#{groups}"]
-    args << "--trace" if Rake.application.options.trace
-    ruby *args
+  unless defined?(ruby_rake_task)
+    # ruby_rake_task was defined in actionpack sprockets/assets.rake prior to Rails 4
+    # This method was backported from Rails 3.2.17
+    def ruby_rake_task(task, fork = true)
+      env    = ENV['RAILS_ENV'] || 'production'
+      groups = ENV['RAILS_GROUPS'] || 'assets'
+      args   = [$0, task,"RAILS_ENV=#{env}","RAILS_GROUPS=#{groups}"]
+      args << "--trace" if Rake.application.options.trace
+      if $0 =~ /rake\.bat\Z/i
+        Kernel.exec $0, *args
+      else
+        fork ? ruby(*args) : Kernel.exec(FileUtils::RUBY, *args)
+      end
+    end
   end
 
   # From Rails 3 assets.rake; we have the same problem:
