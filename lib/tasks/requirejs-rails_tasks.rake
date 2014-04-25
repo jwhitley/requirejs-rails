@@ -77,19 +77,6 @@ OS X Homebrew users can use 'brew install node'.
                   "requirejs:precompile:run_rjs",
                   "requirejs:precompile:digestify_and_compress"]
 
-    task :disable_js_compressor do
-      # Ensure that Sprockets doesn't try to compress assets before they hit
-      # r.js.  Failure to do this can cause a build which works in dev, but
-      # emits require.js "notloaded" errors, etc. in production.
-      #
-      # Note that a configuration block is used here to ensure that it runs
-      # after the environment ("config/application.rb",
-      # "config/environments/*.rb") has been set up.
-      Rails.application.config.assets.configure do |env|
-        env.js_compressor = false
-      end
-    end
-
     # Invoke another ruby process if we're called from inside
     # assets:precompile so we don't clobber the environment
     #
@@ -160,6 +147,3 @@ OS X Homebrew users can use 'brew install node'.
 end
 
 task "assets:precompile" => ["requirejs:precompile:external"]
-if ARGV[0] == "requirejs:precompile:all"
-  task "assets:environment" => ["requirejs:precompile:disable_js_compressor"]
-end

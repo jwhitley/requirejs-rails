@@ -20,6 +20,15 @@ module Requirejs
 
         config.assets.precompile += config.requirejs.precompile
 
+        # Check for the existence of the requirejs:precompile:all top-level Rake task and disable asset pipeline
+        # compression to ensure that `r.js` gets uncompressed assets.
+        Rake.application.top_level_tasks.each do |task_name|
+          case task_name
+            when "requirejs:precompile:all"
+              config.assets.js_compressor = false
+          end
+        end if defined?(Rake.application)
+
         manifest_directory = config.assets.manifest || File.join(::Rails.public_path, config.assets.prefix)
         manifest_path = File.join(manifest_directory, "rjs_manifest.yml")
         config.requirejs.manifest_path = Pathname.new(manifest_path)
