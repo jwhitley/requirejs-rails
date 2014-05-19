@@ -13,7 +13,7 @@ module RequirejsHelper
         name += ".js" unless name =~ /\.js$/
         data['main'] = _javascript_path(name).
                         sub(/\.js$/,'').
-                        sub(baseUrl(name), '').
+                        sub(base_url(name), '').
                         sub(/\A\//, '')
       end
 
@@ -58,7 +58,7 @@ module RequirejsHelper
           run_config['paths'] = paths
         end
 
-        run_config['baseUrl'] = baseUrl(name)
+        run_config['baseUrl'] = base_url(name)
         html.concat <<-HTML
         <script>var require = #{run_config.to_json};</script>
         HTML
@@ -95,7 +95,7 @@ module RequirejsHelper
     end
   end
 
-  def baseUrl(js_asset)
+  def base_url(js_asset)
     js_asset_path = javascript_path(js_asset)
     uri = URI.parse(js_asset_path)
     asset_host = uri.host && js_asset_path.sub(uri.request_uri, '')
