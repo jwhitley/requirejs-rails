@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   git_test_files, git_files = `git ls-files`.split("\n").partition { |f| f =~ /^test/ }
   s.test_files = git_test_files
   s.files = git_files
-  s.require_path = 'lib'  
+  s.require_path = 'lib'
 
   s.add_dependency "railties", ">= 3.1.1"
   s.add_development_dependency "rails", ">= 3.1.1"
