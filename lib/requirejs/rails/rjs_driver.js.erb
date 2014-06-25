@@ -5,42 +5,16 @@ var requirejs = require('<%= rjs_path %>'),
   baseConfig = <%=
     modifiedHash = build_config.select {|k, _| k != "modules"}
     pathsHash = modifiedHash["paths"]
+    modifiedHash["dir"] = self.target_dir
     modifiedHash["paths"] = pathsHash.select {|_, v| !v.is_a?(Array)} if !pathsHash.nil?
 
     JSON.pretty_generate(modifiedHash)
   %>;
 
-// Function used to mix in baseConfig to a new config target
-function mix(target) {
-  for (var prop in baseConfig) {
-    if (baseConfig.hasOwnProperty(prop)) {
-      target[prop] = baseConfig[prop];
-    }
-  }
-  return target;
-}
-
-var module_specs = [
+baseConfig.modules = [
 <% build_config['modules'].each do |m| %>
-<%= JSON.pretty_generate(m.merge 'out' => module_path_for(m).to_s ) %>,
+<%= JSON.pretty_generate(m) %>,
 <% end %>
 ];
 
-// Error handler invoked in case requirejs compilation fails
-var errback = function(error) {
-  process.stderr.write(error.toString());
-  process.exit(1);
-}
-
-// Do a series of builds of individual files, using the args suggested by:
-// http://requirejs.org/docs/optimization.html#onejs
-//
-// r.js will eventually need a nested call idiom to handle async
-// builds.  Anticipating that need.
-var async_runner = module_specs.reduceRight(function(prev, curr) {
-  return function (buildReportText) {
-    requirejs.optimize(mix(curr), prev, errback);
-  };
-}, function(buildReportText) {} );
-
-async_runner();
+requirejs.optimize(baseConfig);
