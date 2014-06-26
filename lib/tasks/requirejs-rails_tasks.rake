@@ -90,6 +90,9 @@ OS X Homebrew users can use 'brew install node'.
     task :prepare_source => ["requirejs:setup",
                              "requirejs:clean"] do
       requirejs.config.source_dir.mkpath
+      requirejs.config.build_dir.mkpath
+      requirejs.config.driver_path.parent.mkpath
+
       requirejs.env.each_logical_path do |logical_path|
         next unless requirejs.config.asset_allowed?(logical_path)
         if asset = requirejs.env.find_asset(logical_path)
@@ -119,7 +122,7 @@ OS X Homebrew users can use 'brew install node'.
     task :digestify_and_compress => ["requirejs:setup"] do
       requirejs.config.build_config['modules'].each do |m|
         asset_name = "#{requirejs.config.module_name_for(m)}.js"
-        built_asset_path = requirejs.config.target_dir + asset_name
+        built_asset_path = requirejs.config.build_dir.join(asset_name)
         digest_name = asset_name.sub(/\.(\w+)$/) { |ext| "-#{requirejs.builder.digest_for(built_asset_path)}#{ext}" }
         digest_asset_path = requirejs.config.target_dir + digest_name
         requirejs.manifest[asset_name] = digest_name

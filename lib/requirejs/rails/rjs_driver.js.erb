@@ -5,7 +5,7 @@ var requirejs = require('<%= rjs_path %>'),
   baseConfig = <%=
     modifiedHash = build_config.select {|k, _| k != "modules"}
     pathsHash = modifiedHash["paths"]
-    modifiedHash["dir"] = self.target_dir.to_s
+    modifiedHash["dir"] = build_dir.to_s
     modifiedHash["paths"] = pathsHash.select {|_, v| !v.is_a?(Array)} if !pathsHash.nil?
 
     JSON.pretty_generate(modifiedHash)
