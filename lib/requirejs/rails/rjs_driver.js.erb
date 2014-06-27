@@ -1,19 +1,24 @@
-//Load the requirejs optimizer
-var requirejs = require('<%= rjs_path %>'),
-  //Set up basic config, include config that is
-  //common to all the optimize() calls.
-  baseConfig = <%=
-    modifiedHash = build_config.select {|k, _| k != "modules"}
-    pathsHash = modifiedHash["paths"]
-    modifiedHash["dir"] = build_dir.to_s
-    modifiedHash["paths"] = pathsHash.select {|_, v| !v.is_a?(Array)} if !pathsHash.nil?
+var requirejs = require(<%= rjs_path.to_s.dump %>)
+var baseConfig = <%=
+cdn_pattern = Regexp.new("\\Ahttps?://")
 
-    JSON.pretty_generate(modifiedHash)
-  %>;
+modifiedHash = build_config.select { |k, _| k != "modules" }
+pathsHash = modifiedHash["paths"]
+modifiedHash["dir"] = build_dir.to_s
+modifiedHash["paths"] = Hash[pathsHash
+  .select do |_, v|
+    !v.is_a?(Array)
+  end.map do |k, v|
+    [k, if !cdn_pattern.match(v) then v else "empty:" end]
+  end
+] if !pathsHash.nil?
+
+JSON.pretty_generate(modifiedHash)
+%>;
 
 baseConfig.modules = [
-<% build_config['modules'].each do |m| %>
-<%= JSON.pretty_generate(m) %>,
+<% build_config["modules"].each do |m| %>
+  <%= JSON.pretty_generate(m) %>,
 <% end %>
 ];
 
