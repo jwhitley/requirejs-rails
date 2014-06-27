@@ -125,6 +125,7 @@ OS X Homebrew users can use 'brew install node'.
         built_asset_path = requirejs.config.build_dir.join(asset_name)
         digest_name = asset_name.sub(/\.(\w+)$/) { |ext| "-#{requirejs.builder.digest_for(built_asset_path)}#{ext}" }
         digest_asset_path = requirejs.config.target_dir + digest_name
+        digest_asset_path.dirname.mkpath
         requirejs.manifest[asset_name] = digest_name
         FileUtils.cp built_asset_path, digest_asset_path
 
