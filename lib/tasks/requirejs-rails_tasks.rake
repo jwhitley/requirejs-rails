@@ -90,8 +90,6 @@ OS X Homebrew users can use 'brew install node'.
     task :prepare_source => ["requirejs:setup",
                              "requirejs:clean"] do
       requirejs.config.source_dir.mkpath
-      requirejs.config.build_dir.mkpath
-      requirejs.config.driver_path.parent.mkpath
 
       requirejs.env.each_logical_path do |logical_path|
         next unless requirejs.config.asset_allowed?(logical_path)
@@ -109,7 +107,9 @@ OS X Homebrew users can use 'brew install node'.
 
     task :run_rjs => ["requirejs:setup",
                       "requirejs:test_node"] do
+      requirejs.config.build_dir.mkpath
       requirejs.config.target_dir.mkpath
+      requirejs.config.driver_path.dirname.mkpath
 
       result = `node "#{requirejs.config.driver_path}"`
       unless $?.success?
@@ -125,6 +125,10 @@ OS X Homebrew users can use 'brew install node'.
         built_asset_path = requirejs.config.build_dir.join(asset_name)
         digest_name = asset_name.sub(/\.(\w+)$/) { |ext| "-#{requirejs.builder.digest_for(built_asset_path)}#{ext}" }
         digest_asset_path = requirejs.config.target_dir + digest_name
+
+        # Ensure that the parent directory `a/b` for modules with names like `a/b/c` exist.
+        digest_asset_path.dirname.mkpath
+
         requirejs.manifest[asset_name] = digest_name
         FileUtils.cp built_asset_path, digest_asset_path
 
