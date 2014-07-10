@@ -29,7 +29,11 @@ module Requirejs
           end
         end if defined?(Rake.application)
 
-        manifest_directory = config.assets.manifest || File.join(::Rails.public_path, config.assets.prefix)
+        manifest_directory = if config.assets.manifest
+                               File.dirname(config.assets.manifest)
+                             else
+                               File.join(::Rails.public_path, config.assets.prefix)
+                             end
         manifest_path = File.join(manifest_directory, "rjs_manifest.yml")
         config.requirejs.manifest_path = Pathname.new(manifest_path)
       end
