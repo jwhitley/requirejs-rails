@@ -125,6 +125,7 @@ OS X Homebrew users can use 'brew install node'.
         built_asset_path = requirejs.config.build_dir.join(asset_name)
         digest_name = asset_name.sub(/\.(\w+)$/) { |ext| "-#{requirejs.builder.digest_for(built_asset_path)}#{ext}" }
         digest_asset_path = requirejs.config.target_dir + digest_name
+        non_digest_asset_path = requirejs.config.target_dir + asset_name
 
         # Ensure that the parent directory `a/b` for modules with names like `a/b/c` exist.
         digest_asset_path.dirname.mkpath
@@ -139,6 +140,10 @@ OS X Homebrew users can use 'brew install node'.
           zgw.close
         end
         FileUtils.cp "#{built_asset_path}.gz", "#{digest_asset_path}.gz"
+
+        # Copy non digest versions too
+        FileUtils.cp built_asset_path, non_digest_asset_path
+        FileUtils.cp "#{built_asset_path}.gz", "#{non_digest_asset_path}.gz"
 
         requirejs.config.manifest_path.open('wb') do |f|
           YAML.dump(requirejs.manifest, f)
