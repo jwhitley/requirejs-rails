@@ -9,6 +9,7 @@ module Requirejs
       config.before_configuration do |app|
         config.requirejs = Requirejs::Rails::Config.new(app)
         config.requirejs.precompile = [/require\.js$/]
+        config.requirejs.sprokets_js_compression = false
       end
 
       config.before_initialize do |app|
@@ -25,7 +26,9 @@ module Requirejs
         Rake.application.top_level_tasks.each do |task_name|
           case task_name
             when "requirejs:precompile:all"
-              config.assets.js_compressor = false
+              unless config.requirejs.sprokets_js_compression
+                config.assets.js_compressor = false
+              end
           end
         end if defined?(Rake.application)
 
