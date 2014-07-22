@@ -1,6 +1,10 @@
 <!--
 Marked Style: GitHub
 -->
+# v0.9.4
+
+- Update `require.js` to `2.1.14`
+
 # v0.9.3
 
 - Update `require.js` to `2.1.11` and `almond.js` to `0.2.9`.
