@@ -59,8 +59,12 @@ module RequirejsHelper
         end
 
         run_config['baseUrl'] = base_url(name)
+        # Detect functions in JSON and unescape them so they can be evaluated by RequireJS
+        run_config_json = run_config.to_json.gsub(/"(function\(.*?\)\s*?{.*?}[\s\\n]*)"/) do |f|
+          eval(f).strip.delete("\n")
+        end
         html.concat <<-HTML
-        <script>var require = #{run_config.to_json};</script>
+        <script>var require = #{run_config_json};</script>
         HTML
       end
 
