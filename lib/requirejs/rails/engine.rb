@@ -9,6 +9,7 @@ module Requirejs
       config.before_configuration do |app|
         config.requirejs = Requirejs::Rails::Config.new(app)
         config.requirejs.precompile = [/require\.js$/]
+        config.requirejs.sprokets_js_compression = false
       end
 
       config.before_initialize do |app|
@@ -25,7 +26,9 @@ module Requirejs
         Rake.application.top_level_tasks.each do |task_name|
           case task_name
             when "requirejs:precompile:all"
-              config.assets.js_compressor = false
+              # Enable class reloading so sprokets doesn't cache the assets configuration
+              # allowing settings for JS compression to be changed on a per file basis.
+              config.cache_classes = false
           end
         end if defined?(Rake.application)
 
