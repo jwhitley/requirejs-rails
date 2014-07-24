@@ -56,7 +56,9 @@ module RequirejsHelper
 
           if run_config.has_key? 'paths'
             # Add paths for assets specified by full URL (on a CDN)
-            run_config['paths'].each { |k, v| paths[k] = v if v =~ /^https?:/ }
+            run_config['paths'].each do |k, v|
+              paths[k] = v if v.is_a?(Array) || v =~ /^https?:/
+            end
           end
 
           # Override user paths, whose mappings are only relevant in dev mode
