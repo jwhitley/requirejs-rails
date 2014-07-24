@@ -26,9 +26,9 @@ module Requirejs
         Rake.application.top_level_tasks.each do |task_name|
           case task_name
             when "requirejs:precompile:all"
-              unless config.requirejs.sprokets_js_compression
-                config.assets.js_compressor = false
-              end
+              # Enable class reloading so sprokets doesn't cache the assets configuration
+              # allowing settings for JS compression to be changed on a per file basis.
+              config.cache_classes = false
           end
         end if defined?(Rake.application)
 
