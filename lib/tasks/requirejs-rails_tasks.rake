@@ -54,6 +54,7 @@ namespace :requirejs do
     # Preserve the original asset paths, as we'll be manipulating them later
     requirejs.env_paths = requirejs.env.paths.dup
     requirejs.config = Rails.application.config.requirejs
+    requirejs.assets = Rails.application.config.assets
     requirejs.builder = Requirejs::Rails::Builder.new(requirejs.config)
     requirejs.manifest = {}
   end
@@ -91,14 +92,18 @@ OS X Homebrew users can use 'brew install node'.
                              "requirejs:clean"] do
       requirejs.config.source_dir.mkpath
 
+      js_compressor = Sprockets::Rails::Helper.assets.js_compressor
       requirejs.env.each_logical_path do |logical_path|
         next unless requirejs.config.asset_allowed?(logical_path)
+        Sprockets::Rails::Helper.assets.js_compressor = requirejs.config.asset_precompiled?(logical_path, logical_path) ? js_compressor : false
         if asset = requirejs.env.find_asset(logical_path)
           filename = requirejs.config.source_dir + asset.logical_path
           filename.dirname.mkpath
           asset.write_to(filename)
         end
       end
+      # Revert to original js_compressor so Sprokets can use it
+      Sprockets::Rails::Helper.assets.js_compressor = js_compressor
     end
 
     task :generate_rjs_driver => ["requirejs:setup"] do
@@ -125,6 +130,7 @@ OS X Homebrew users can use 'brew install node'.
         built_asset_path = requirejs.config.build_dir.join(asset_name)
         digest_name = asset_name.sub(/\.(\w+)$/) { |ext| "-#{requirejs.builder.digest_for(built_asset_path)}#{ext}" }
         digest_asset_path = requirejs.config.target_dir + digest_name
+        non_digest_asset_path = requirejs.config.target_dir + asset_name
 
         # Ensure that the parent directory `a/b` for modules with names like `a/b/c` exist.
         digest_asset_path.dirname.mkpath
@@ -139,6 +145,10 @@ OS X Homebrew users can use 'brew install node'.
           zgw.close
         end
         FileUtils.cp "#{built_asset_path}.gz", "#{digest_asset_path}.gz"
+
+        # Copy non digest versions too
+        FileUtils.cp built_asset_path, non_digest_asset_path
+        FileUtils.cp "#{built_asset_path}.gz", "#{non_digest_asset_path}.gz"
 
         requirejs.config.manifest_path.open('wb') do |f|
           YAML.dump(requirejs.manifest, f)
