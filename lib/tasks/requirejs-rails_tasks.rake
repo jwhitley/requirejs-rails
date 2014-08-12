@@ -34,12 +34,12 @@ namespace :requirejs do
 
   requirejs = ActiveSupport::OrderedOptions.new
 
-  task :clean => ["requirejs:setup"] do
+  task clean: ["requirejs:setup"] do
     FileUtils.remove_entry_secure(requirejs.config.source_dir, true)
     FileUtils.remove_entry_secure(requirejs.driver_path, true)
   end
 
-  task :setup => ["assets:environment"] do
+  task setup: ["assets:environment"] do
     unless defined?(Sprockets)
       warn "Cannot precompile assets if sprockets is disabled. Please set config.assets.enabled to true"
       exit
@@ -72,41 +72,52 @@ OS X Homebrew users can use 'brew install node'.
   end
 
   namespace :precompile do
-    task :all => ["requirejs:precompile:prepare_source",
-                  "requirejs:precompile:generate_rjs_driver",
-                  "requirejs:precompile:run_rjs",
-                  "requirejs:precompile:digestify_and_compress"]
+    task all: ["requirejs:precompile:prepare_source",
+               "requirejs:precompile:generate_rjs_driver",
+               "requirejs:precompile:run_rjs",
+               "requirejs:precompile:digestify_and_compress"]
 
     # Invoke another ruby process if we're called from inside
     # assets:precompile so we don't clobber the environment
     #
     # We depend on test_node here so we'll fail early and hard if node
     # isn't available.
-    task :external => ["requirejs:test_node"] do
+    task external: ["requirejs:test_node"] do
       ruby_rake_task "requirejs:precompile:all"
     end
 
-    # copy all assets to tmp/assets
-    task :prepare_source => ["requirejs:setup",
-                             "requirejs:clean"] do
+    # Copy all assets to the temporary staging directory.
+    task prepare_source: ["requirejs:setup",
+                          "requirejs:clean"] do
+      bower_json_pattern = Regexp.new("\\A(.*)/bower\\.json\\z")
+      js_ext = requirejs.env.extension_for_mime_type("application/javascript")
+
       requirejs.config.source_dir.mkpath
 
       requirejs.env.each_logical_path do |logical_path|
-        next unless requirejs.config.asset_allowed?(logical_path)
-        if asset = requirejs.env.find_asset(logical_path)
-          filename = requirejs.config.source_dir + asset.logical_path
+        m = bower_json_pattern.match(logical_path)
+        bower_logical_path = m && "#{m[1]}#{js_ext}"
+
+        next \
+          if !(requirejs.config.asset_allowed?(logical_path) || bower_logical_path)
+
+        asset = requirejs.env.find_asset(logical_path)
+
+        if asset
+          # If a `bower.json` was found, then substitute the logical path for the parsed module name.
+          filename = requirejs.config.source_dir.join(bower_logical_path || asset.logical_path)
           filename.dirname.mkpath
           asset.write_to(filename)
         end
       end
     end
 
-    task :generate_rjs_driver => ["requirejs:setup"] do
+    task generate_rjs_driver: ["requirejs:setup"] do
       requirejs.builder.generate_rjs_driver
     end
 
-    task :run_rjs => ["requirejs:setup",
-                      "requirejs:test_node"] do
+    task run_rjs: ["requirejs:setup",
+                   "requirejs:test_node"] do
       requirejs.config.build_dir.mkpath
       requirejs.config.target_dir.mkpath
       requirejs.config.driver_path.dirname.mkpath
@@ -119,7 +130,7 @@ OS X Homebrew users can use 'brew install node'.
 
     # Copy each built asset, identified by a named module in the
     # build config, to its Sprockets digestified name.
-    task :digestify_and_compress => ["requirejs:setup"] do
+    task digestify_and_compress: ["requirejs:setup"] do
       requirejs.config.build_config['modules'].each do |m|
         asset_name = "#{requirejs.config.module_name_for(m)}.js"
         built_asset_path = requirejs.config.build_dir.join(asset_name)
