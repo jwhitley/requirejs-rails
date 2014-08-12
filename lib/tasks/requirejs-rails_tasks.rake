@@ -94,6 +94,14 @@ OS X Homebrew users can use 'brew install node'.
 
       requirejs.config.source_dir.mkpath
 
+      # Save the original JS compressor and cache, which will be restored later.
+
+      original_js_compressor = requirejs.env.js_compressor
+      requirejs.env.js_compressor = false
+
+      original_cache = requirejs.env.cache
+      requirejs.env.cache = nil
+
       requirejs.env.each_logical_path do |logical_path|
         m = bower_json_pattern.match(logical_path)
         bower_logical_path = m && "#{m[1]}#{js_ext}"
@@ -104,12 +112,16 @@ OS X Homebrew users can use 'brew install node'.
         asset = requirejs.env.find_asset(logical_path)
 
         if asset
-          # If a `bower.json` was found, then substitute the logical path for the parsed module name.
+          # If a `bower.json` was found, then substitute the logical path with the parsed module name.
           filename = requirejs.config.source_dir.join(bower_logical_path || asset.logical_path)
           filename.dirname.mkpath
           asset.write_to(filename)
         end
       end
+
+      # Restore the original JS compressor and cache.
+      requirejs.env.js_compressor = original_js_compressor
+      requirejs.env.cache = original_cache
     end
 
     task generate_rjs_driver: ["requirejs:setup"] do

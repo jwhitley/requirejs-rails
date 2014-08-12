@@ -20,12 +20,13 @@ module Requirejs
 
         config.assets.precompile += config.requirejs.precompile
 
-        # Check for the existence of the requirejs:precompile:all top-level Rake task and disable asset pipeline
-        # compression to ensure that `r.js` gets uncompressed assets.
+        # Check for the `requirejs:precompile:all` top-level Rake task and run the following initialization code.
         Rake.application.top_level_tasks.each do |task_name|
           case task_name
             when "requirejs:precompile:all"
-              config.assets.js_compressor = false
+              # Enable class reloading so that Sprockets doesn't freeze the assets environment. This allows settings
+              # for JS compression to be changes on a per-file basis.
+              config.cache_classes = false
           end
         end if defined?(Rake.application)
 
