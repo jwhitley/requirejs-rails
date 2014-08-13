@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.authors     = ["John Whitley"]
   s.email       = ["whitley@bangpath.org"]
   s.homepage    = "http://github.com/jwhitley/requirejs-rails"
-  s.summary     = "Use RequireJS with the Rails 3 Asset Pipeline"
+  s.summary     = "Use RequireJS with the Rails 3+ Asset Pipeline"
   s.description = "This gem provides RequireJS support for your Rails 3 application."
 
   git_test_files, git_files = `git ls-files`.split("\n").partition { |f| f =~ /^test/ }
