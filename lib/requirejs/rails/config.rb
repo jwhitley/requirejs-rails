@@ -58,10 +58,12 @@ module Requirejs::Rails
         dir
         fileExclusionRegExp
         findNestedDependencies
+        generateSourceMaps
         has
         hasOnSave
         include
         inlineText
+        keepBuildDir
         locale
         mainConfigFile
         map
@@ -70,6 +72,7 @@ module Requirejs::Rails
         namespace
         onBuildRead
         onBuildWrite
+        onModuleBundleComplete
         optimize
         optimizeAllPluginResources
         optimizeCss
@@ -81,6 +84,7 @@ module Requirejs::Rails
         pragmasOnSave
         preserveLicenseComments
         shim
+        skipDirOptimize
         skipModuleInsertion
         skipPragmas
         uglify
