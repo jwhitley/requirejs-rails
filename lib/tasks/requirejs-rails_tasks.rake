@@ -10,6 +10,9 @@ require 'tempfile'
 require 'active_support/ordered_options'
 
 namespace :requirejs do
+
+  logger = Logger.new(STDOUT)
+
   # This method was backported from an earlier version of Sprockets.
   def ruby_rake_task(task, force = true)
     env = ENV["RAILS_ENV"] || "production"
@@ -91,10 +94,12 @@ OS X Homebrew users can use 'brew install node'.
     task :prepare_source => ["requirejs:setup",
                              "requirejs:clean"] do
       requirejs.config.source_dir.mkpath
+      logger.info "Preparing source files for r.js in #{requirejs.config.source_dir}"
 
       js_compressor = Sprockets::Rails::Helper.assets.js_compressor
       requirejs.env.each_logical_path do |logical_path|
         next unless requirejs.config.asset_allowed?(logical_path)
+        logger.info "Preparing #{logical_path}"
         Sprockets::Rails::Helper.assets.js_compressor = requirejs.config.asset_precompiled?(logical_path, logical_path) ? js_compressor : false
         if asset = requirejs.env.find_asset(logical_path)
           filename = requirejs.config.source_dir + asset.logical_path
@@ -125,6 +130,7 @@ OS X Homebrew users can use 'brew install node'.
     # Copy each built asset, identified by a named module in the
     # build config, to its Sprockets digestified name.
     task :digestify_and_compress => ["requirejs:setup"] do
+      logger.info "Digestify and compress assets optimized with r.js"
       requirejs.config.build_config['modules'].each do |m|
         asset_name = "#{requirejs.config.module_name_for(m)}.js"
         built_asset_path = requirejs.config.build_dir.join(asset_name)
@@ -136,6 +142,7 @@ OS X Homebrew users can use 'brew install node'.
         digest_asset_path.dirname.mkpath
 
         requirejs.manifest[asset_name] = digest_name
+        logger.info "Writing #{digest_asset_path}"
         FileUtils.cp built_asset_path, digest_asset_path
 
         # Create the compressed versions
