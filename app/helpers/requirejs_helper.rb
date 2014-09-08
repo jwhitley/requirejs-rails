@@ -7,36 +7,27 @@ module RequirejsHelper
   mattr_accessor :_priority
   @@_priority = []
 
-  def _requirejs_data(name, &block)
-    {}.tap do |data|
-      if name
-        name += ".js" unless name =~ /\.js$/
-        data['main'] = _javascript_path(name) \
-          .sub(/\.js$/, '') \
-          .sub(base_url(name), '') \
-          .sub(/\A\//, '')
-      end
-
-      data.merge!(yield controller) if block_given?
-    end.map do |k, v|
-      %Q{data-#{k}="#{v}"}
-    end.join(" ")
-  end
-
   def requirejs_include_tag(name=nil, &block)
     requirejs = Rails.application.config.requirejs
 
     if requirejs.loader == :almond
       name = requirejs.module_name_for(requirejs.build_config['modules'][0])
-      return _almond_include_tag(name, &block)
+      return almond_include_tag(name, &block)
     end
 
     html = ""
 
-    _once_guard do
-      html.concat <<-HTML
-      <script #{_requirejs_data(name, &block)} src="#{_javascript_path 'require.js'}"></script>
-      HTML
+    once_guard do
+      rjs_attributes = {
+          src: javascript_path("require")
+      }
+
+      rjs_attributes = rjs_attributes.merge(Hash[block.call(controller).map do |key, value|
+        ["data-#{key}", value]
+      end]) \
+        if block
+
+      html.concat(content_tag(:script, "", rjs_attributes))
 
       unless requirejs.run_config.empty?
         run_config = requirejs.run_config.dup
@@ -52,7 +43,7 @@ module RequirejsHelper
 
           # Generate digestified paths from the modules spec
           paths = {}
-          modules.each { |m| paths[m] = _javascript_path(m).sub /\.js$/, '' }
+          modules.each { |m| paths[m] = javascript_path(m).sub /\.js$/, '' }
 
           if run_config.has_key? 'paths'
             # Add paths for assets specified by full URL (on a CDN)
@@ -67,16 +58,34 @@ module RequirejsHelper
         end
 
         run_config['baseUrl'] = base_url(name)
-        html.concat <<-HTML
-        <script>require.config(#{run_config.to_json});</script>
-        HTML
+
+        html.concat(content_tag(:script) do
+          script = "require.config(#{run_config.to_json});"
+
+          # Pass an array to `require`, since it's a top-level module about to be loaded asynchronously (see
+          # `http://requirejs.org/docs/errors.html#notloaded`).
+          script.concat(" require([#{name.dump}]);") \
+            if name
+
+          script.html_safe
+        end)
       end
 
       html.html_safe
     end
   end
 
-  def _once_guard
+  def javascript_path(name)
+    if defined?(super)
+      super
+    else
+      "/assets/#{name}"
+    end
+  end
+
+  private
+
+  def once_guard
     if defined?(controller) && controller.requirejs_included
       raise Requirejs::MultipleIncludeError, "Only one requirejs_include_tag allowed per page."
     end
@@ -87,16 +96,8 @@ module RequirejsHelper
     retval
   end
 
-  def _almond_include_tag(name, &block)
-    "<script src='#{_javascript_path name}'></script>\n".html_safe
-  end
-
-  def _javascript_path(name)
-    if defined?(javascript_path)
-      javascript_path(name)
-    else
-      "/assets/#{name}"
-    end
+  def almond_include_tag(name, &block)
+    content_tag(:script, "", src: javascript_path(name))
   end
 
   def base_url(js_asset)

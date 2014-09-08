@@ -132,8 +132,7 @@ class RequirejsHelperTest < ActionView::TestCase
   test "requirejs_include_tag_with_param" do
     render text: wrap(requirejs_include_tag("application"))
 
-    assert_select "script:first-of-type[src=\"/javascripts/require.js\"]" \
-      "[data-main=\"javascripts/application\"]", count: 1
+    assert_select "script:first-of-type[src=\"/javascripts/require.js\"]", count: 1
   end
 
   test "requirejs_include_tag_with_block" do
@@ -142,7 +141,6 @@ class RequirejsHelperTest < ActionView::TestCase
     end)
 
     assert_select "script:first-of-type[src=\"/javascripts/require.js\"]" \
-      "[data-main=\"javascripts/application\"]" \
       "[data-class=\"TestController\"]", count: 1
   end
 
