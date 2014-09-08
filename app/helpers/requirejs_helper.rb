@@ -35,6 +35,7 @@ module RequirejsHelper
 
     _once_guard do
       html.concat <<-HTML
+      <script>var require = {"baseUrl":"/assets"}</script>
       <script #{_requirejs_data(name, &block)} src="#{_javascript_path 'require.js'}"></script>
       HTML
 
