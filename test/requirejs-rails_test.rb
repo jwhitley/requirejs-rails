@@ -195,4 +195,12 @@ class RequirejsHelperTest < ActionView::TestCase
       Rails.application.config.assets.digest = saved_digest
     end
   end
+
+  test "requirejs_include_tag with baseUrl configured" do
+    Rails.application.config.requirejs.run_config['baseUrl'] = "http://cdn.example.com"
+
+    render text: wrap(requirejs_include_tag)
+
+    assert_select "script:last-of-type", text: "require.config({\"baseUrl\":\"http://cdn.example.com\"});"
+  end
 end
