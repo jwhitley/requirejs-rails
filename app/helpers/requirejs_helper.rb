@@ -75,7 +75,7 @@ module RequirejsHelper
     end
   end
 
-  def javascript_path(name)
+  def javascript_path(name, options = {})
     if defined?(super)
       super
     else
