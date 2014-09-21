@@ -17,7 +17,7 @@ class RequirejsRailsTest < ActiveSupport::TestCase
   end
 
   test "CHANGELOG up to date" do
-    changelog_match = (/^# v#{Requirejs::Rails::Version}/ =~ Pathname.new(__FILE__+'/../../CHANGELOG.md').cleanpath.read)
+    changelog_match = (/^### v#{Requirejs::Rails::Version}/ =~ Pathname.new(__FILE__+'/../../CHANGELOG.md').cleanpath.read)
     assert changelog_match, "CHANGELOG has no section for v#{Requirejs::Rails::Version}"
   end
 end

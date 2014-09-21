@@ -1,4 +1,5 @@
-require 'requirejs/error'
+require "requirejs/error"
+require "requirejs/rails/view_proxy"
 
 module RequirejsHelper
   # EXPERIMENTAL: Additional priority settings appended to
@@ -7,7 +8,7 @@ module RequirejsHelper
   mattr_accessor :_priority
   @@_priority = []
 
-  def requirejs_include_tag(name=nil, &block)
+  def requirejs_include_tag(name = nil, &block)
     requirejs = Rails.application.config.requirejs
 
     if requirejs.loader == :almond
@@ -75,11 +76,19 @@ module RequirejsHelper
     end
   end
 
-  def javascript_path(name, options = {})
+  def javascript_path(source, options = {})
     if defined?(super)
       super
     else
-      "/assets/#{name}"
+      view_proxy.javascript_path(source, options)
+    end
+  end
+
+  def content_tag(name, content_or_options_with_block = nil, options = nil, escape = true, &block)
+    if defined?(super) && respond_to?(:output_buffer) && respond_to?(:output_buffer=)
+      super
+    else
+      view_proxy.content_tag(name, content_or_options_with_block, options, escape, &block)
     end
   end
 
@@ -105,5 +114,9 @@ module RequirejsHelper
     uri = URI.parse(js_asset_path)
     asset_host = uri.host && js_asset_path.sub(uri.request_uri, '')
     [asset_host, Rails.application.config.relative_url_root, Rails.application.config.assets.prefix].join
+  end
+
+  def view_proxy
+    @view_proxy ||= Requirejs::Rails::ViewProxy.new
   end
 end
