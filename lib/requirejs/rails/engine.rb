@@ -1,6 +1,6 @@
-require 'requirejs/rails/config'
+require "pathname"
 
-require 'pathname'
+require "requirejs/rails/config"
 
 module Requirejs
   module Rails

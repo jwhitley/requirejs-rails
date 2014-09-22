@@ -1,5 +1,5 @@
 module Requirejs
   module Rails
-    require 'requirejs/rails/engine'
+    require "requirejs/rails/engine"
   end
 end

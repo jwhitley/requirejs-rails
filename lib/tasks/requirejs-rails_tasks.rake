@@ -1,13 +1,12 @@
-require 'requirejs/rails/builder'
-require 'requirejs/rails/config'
+require "fileutils"
+require "pathname"
+require "tempfile"
 
-require 'fileutils'
-require 'pathname'
+require "active_support/ordered_options"
+require "sprockets"
 
-require 'sprockets'
-require 'tempfile'
-
-require 'active_support/ordered_options'
+require "requirejs/rails/builder"
+require "requirejs/rails/config"
 
 namespace :requirejs do
   # This method was backported from an earlier version of Sprockets.
