@@ -88,7 +88,7 @@ module Requirejs
         uglify
         uglify2
         useStrict
-        wrap
+        wrapShim
       }
       end
 
