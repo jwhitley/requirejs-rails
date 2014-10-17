@@ -144,7 +144,14 @@ OS X Homebrew users can use 'brew install node'.
     task digestify_and_compress: ["requirejs:setup"] do
       requirejs.config.build_config['modules'].each do |m|
         asset_name = "#{requirejs.config.module_name_for(m)}.js"
-        built_asset_path = requirejs.config.build_dir.join(asset_name)
+        asset_path_name = requirejs.config[:user_config]['paths'][requirejs.config.module_name_for(m)]
+
+        built_asset_path = if asset_path_name
+          requirejs.config.build_dir.join("#{asset_path_name}.js")
+        else
+          requirejs.config.build_dir.join(asset_name)
+        end
+
         digest_name = asset_name.sub(/\.(\w+)$/) { |ext| "-#{requirejs.builder.digest_for(built_asset_path)}#{ext}" }
         digest_asset_path = requirejs.config.target_dir + digest_name
 
