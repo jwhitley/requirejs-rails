@@ -38,6 +38,7 @@ module Requirejs
         config
         context
         deps
+        enforceDefine
         jQuery
         locale
         map
