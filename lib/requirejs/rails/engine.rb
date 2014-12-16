@@ -20,6 +20,8 @@ module Requirejs
 
         config.assets.precompile += config.requirejs.precompile
 
+        config.requirejs.js_compressor ||= config.assets.js_compressor
+
         # Check for the `requirejs:precompile:all` top-level Rake task and run the following initialization code.
         if defined?(Rake.application) && Rake.application.top_level_tasks == ["requirejs:precompile:all"]
           # Prevent Sprockets from freezing the assets environment, which allows JS compression to be toggled on a per-

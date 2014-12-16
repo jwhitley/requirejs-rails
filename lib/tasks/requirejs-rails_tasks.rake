@@ -95,7 +95,7 @@ OS X Homebrew users can use 'brew install node'.
 
       # Save the original JS compressor and cache, which will be restored later.
 
-      original_js_compressor = requirejs.env.js_compressor
+      original_js_compressor = requirejs.config.js_compressor
       requirejs.env.js_compressor = false
 
       original_cache = requirejs.env.cache
