@@ -1,1 +1,1 @@
-require 'requirejs/rails'
+require "requirejs/rails"

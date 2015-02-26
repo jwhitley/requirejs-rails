@@ -1,40 +1,23 @@
-//Load the requirejs optimizer
-var requirejs = require('<%= rjs_path %>'),
-  //Set up basic config, include config that is
-  //common to all the optimize() calls.
-  basConfig = <%= JSON.pretty_generate(build_config.reject {|k,v| k == 'modules'}) %>;
+var requirejs = require(<%= rjs_path.to_s.dump %>)
+var baseConfig = <%=
+cdn_pattern = Regexp.new("\\Ahttps?://")
 
-// Function used to mix in baseConfig to a new config target
-function mix(target) {
-  for (var prop in basConfig) {
-    if (basConfig.hasOwnProperty(prop)) {
-      target[prop] = basConfig[prop];
-    }
-  }
-  return target;
-}
+modifiedHash = build_config.select { |k, _| k != "modules" }
+pathsHash = modifiedHash["paths"]
+modifiedHash["dir"] = build_dir.to_s
+modifiedHash["paths"] = Hash[
+  pathsHash.map do |k, v|
+    [k, v.is_a?(Array) || cdn_pattern.match(v) ? "empty:" : v]
+  end
+] if !pathsHash.nil?
 
-var module_specs = [
-<% build_config['modules'].each do |m| %>
-<%= JSON.pretty_generate(m.merge 'out' => module_path_for(m).to_s ) %>,
+JSON.pretty_generate(modifiedHash)
+%>;
+
+baseConfig.modules = [
+<% build_config["modules"].each do |m| %>
+  <%= JSON.pretty_generate(m) %>,
 <% end %>
 ];
 
-// Error handler invoked in case requirejs compilation fails
-var errback = function(error) {
-  process.stderr.write(error.toString());
-  process.exit(1);
-}
-
-// Do a series of builds of individual files, using the args suggested by:
-// http://requirejs.org/docs/optimization.html#onejs
-//
-// r.js will eventually need a nested call idiom to handle async 
-// builds.  Anticipating that need.
-var async_runner = module_specs.reduceRight(function(prev, curr) {
-  return function (buildReportText) {
-    requirejs.optimize(mix(curr), prev, errback);
-  };
-}, function(buildReportText) {} );
-
-async_runner();
+requirejs.optimize(baseConfig);
