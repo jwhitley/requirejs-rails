@@ -89,7 +89,12 @@ OS X Homebrew users can use 'brew install node'.
     task prepare_source: ["requirejs:setup",
                           "requirejs:clean"] do
       bower_json_pattern = Regexp.new("\\A(.*)/bower\\.json\\z")
-      js_ext = requirejs.env.extension_for_mime_type("application/javascript")
+
+      js_ext = if requirejs.env.respond_to?(:extension_for_mime_type)
+        requirejs.env.extension_for_mime_type("application/javascript")
+      else
+        requirejs.env.mime_types["application/javascript"][:extensions].first
+      end
 
       requirejs.config.source_dir.mkpath
 
