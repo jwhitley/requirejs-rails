@@ -106,18 +106,14 @@ OS X Homebrew users can use 'brew install node'.
       original_cache = requirejs.env.cache
       requirejs.env.cache = nil
 
-      requirejs.env.each_logical_path do |logical_path|
-        m = bower_json_pattern.match(logical_path)
-        bower_logical_path = m && "#{m[1]}#{js_ext}"
+      requirejs.env.logical_paths do |logical_path|
 
-        next \
-          if !(requirejs.config.asset_allowed?(logical_path) || bower_logical_path)
+        next if ! requirejs.config.asset_allowed?(logical_path)
 
         asset = requirejs.env.find_asset(logical_path)
 
         if asset
-          # If a `bower.json` was found, then substitute the logical path with the parsed module name.
-          filename = requirejs.config.source_dir.join(bower_logical_path || asset.logical_path)
+          filename = requirejs.config.source_dir.join(asset.logical_path)
           filename.dirname.mkpath
           asset.write_to(filename)
         end
@@ -149,8 +145,10 @@ OS X Homebrew users can use 'brew install node'.
     task digestify_and_compress: ["requirejs:setup"] do
       requirejs.config.build_config['modules'].each do |m|
         asset_name = "#{requirejs.config.module_name_for(m)}.js"
+        asset = requirejs.env.find_asset(asset_name)
+
         built_asset_path = requirejs.config.build_dir.join(asset_name)
-        digest_name = asset_name.sub(/\.(\w+)$/) { |ext| "-#{requirejs.builder.digest_for(built_asset_path)}#{ext}" }
+        digest_name = asset.digest_path
         digest_asset_path = requirejs.config.target_dir + digest_name
 
         # Ensure that the parent directory `a/b` for modules with names like `a/b/c` exist.
