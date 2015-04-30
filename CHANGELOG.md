@@ -2,6 +2,12 @@
 
 ## requirejs-rails changelog
 
+### v0.9.6
+
+- Update `require.js` and `r.js` to `2.1.17`, and `almond.js` to `0.3.1`.
+- Improve handling of Bower packages.
+- Make a small fix for Sprockets 3 support.
+
 ### v0.9.5
 
 - Update `require.js` and `r.js` to `2.1.15`, and `almond.js` to `0.3.0`.
