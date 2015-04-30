@@ -41,7 +41,7 @@ class RequirejsRailsConfigTest < ActiveSupport::TestCase
   test "matches configured logical assets" do
     assert_equal true, @cfg.asset_allowed?('foo.js')
     assert_equal false, @cfg.asset_allowed?('bar.frobnitz')
-    @cfg.logical_asset_filter += [/\.frobnitz$/]
+    @cfg.logical_path_patterns += [/\.frobnitz$/]
     assert_equal true, @cfg.asset_allowed?('bar.frobnitz')
   end
 
@@ -136,9 +136,13 @@ class RequirejsHelperTest < ActionView::TestCase
   end
 
   test "requirejs_include_tag_with_block" do
-    render text: wrap(requirejs_include_tag("application") do
-      {"class" => controller.class.name.demodulize}
-    end)
+    result = wrap(
+        requirejs_include_tag("application") do
+          {"class" => controller.class.name.demodulize}
+        end
+    )
+
+    render text: result
 
     assert_select "script:first-of-type[src=\"/javascripts/require.js\"]" \
       "[data-class=\"TestController\"]", count: 1

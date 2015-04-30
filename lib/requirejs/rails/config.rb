@@ -11,11 +11,21 @@ module Requirejs
     class Config < ::ActiveSupport::OrderedOptions
       LOADERS = [:requirejs, :almond]
 
+      BOWER_PATH_PATTERN = Regexp.new("\\A(.*)/(?:\\.bower|bower|component)\\.json\\z")
+
+      LOGICAL_PATH_PATTERNS = [
+          Regexp.new("\\.html\\z"),
+          Regexp.new("\\.js\\z"),
+          Regexp.new("\\.txt\\z"),
+          BOWER_PATH_PATTERN
+      ]
+
       def initialize(application)
         super
-        self.manifest = nil
 
-        self.logical_asset_filter = [/\.js$/, /\.html$/, /\.txt$/]
+        self.manifest = nil
+        self.logical_path_patterns = LOGICAL_PATH_PATTERNS
+
         self.tmp_dir = application.root + 'tmp'
         self.bin_dir = Pathname.new(__FILE__+'/../../../../bin').cleanpath
 
@@ -149,10 +159,10 @@ module Requirejs
         return binding()
       end
 
-      def asset_allowed?(asset)
-        self.logical_asset_filter.reduce(false) do |accum, matcher|
-          accum || (matcher =~ asset)
-        end ? true : false
+      def asset_allowed?(logical_path)
+        logical_path_patterns.reduce(false) do |accum, pattern|
+          accum || !!(pattern.match(logical_path))
+        end
       end
     end
   end

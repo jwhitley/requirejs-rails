@@ -39,7 +39,7 @@ namespace :requirejs do
   end
 
   task setup: ["assets:environment"] do
-    unless defined?(Sprockets)
+    unless defined?(::Sprockets)
       warn "Cannot precompile assets if sprockets is disabled. Please set config.assets.enabled to true"
       exit
     end
@@ -88,14 +88,6 @@ OS X Homebrew users can use 'brew install node'.
     # Copy all assets to the temporary staging directory.
     task prepare_source: ["requirejs:setup",
                           "requirejs:clean"] do
-      bower_json_pattern = Regexp.new("\\A(.*)/bower\\.json\\z")
-
-      js_ext = if requirejs.env.respond_to?(:extension_for_mime_type)
-        requirejs.env.extension_for_mime_type("application/javascript")
-      else
-        requirejs.env.mime_types["application/javascript"][:extensions].first
-      end
-
       requirejs.config.source_dir.mkpath
 
       # Save the original JS compressor and cache, which will be restored later.
@@ -106,16 +98,31 @@ OS X Homebrew users can use 'brew install node'.
       original_cache = requirejs.env.cache
       requirejs.env.cache = nil
 
-      requirejs.env.logical_paths do |logical_path|
+      js_ext = requirejs.env.mime_types["application/javascript"][:extensions].first
 
-        next if ! requirejs.config.asset_allowed?(logical_path)
+      requirejs.env.logical_paths do |logical_path, physical_path|
+        next \
+          if !requirejs.config.asset_allowed?(logical_path)
 
-        asset = requirejs.env.find_asset(logical_path)
+        m = ::Requirejs::Rails::Config::BOWER_PATH_PATTERN.match(logical_path)
 
-        if asset
-          filename = requirejs.config.source_dir.join(asset.logical_path)
-          filename.dirname.mkpath
-          asset.write_to(filename)
+        if !m
+          asset = requirejs.env.find_asset(logical_path)
+
+          if asset
+            file = requirejs.config.source_dir.join(asset.logical_path)
+            file.dirname.mkpath
+            asset.write_to(file)
+          end
+        else
+          bower_logical_path = Pathname.new(logical_path).dirname.sub_ext(js_ext).to_s
+          asset = requirejs.env.find_asset(bower_logical_path)
+
+          if asset
+            file = requirejs.config.source_dir.join(bower_logical_path)
+            file.dirname.mkpath
+            asset.write_to(file)
+          end
         end
       end
 
