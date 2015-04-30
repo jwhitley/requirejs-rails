@@ -14,14 +14,6 @@ module Requirejs
         @config.tmp_dir
       end
 
-      def digest_for(path)
-        if !::Rails.application.assets.file_digest(path).nil?
-          ::Rails.application.assets.file_digest(path).hexdigest
-        else
-          raise Requirejs::BuildError, "Cannot compute digest for missing asset: #{path}"
-        end
-      end
-
       def generate_rjs_driver
         templ = Erubis::Eruby.new(@config.driver_template_path.read)
         @config.driver_path.open('w') do |f|
