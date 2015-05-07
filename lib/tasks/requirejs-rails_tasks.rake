@@ -98,12 +98,13 @@ OS X Homebrew users can use 'brew install node'.
       original_cache = requirejs.env.cache
       requirejs.env.cache = nil
 
-      js_ext = requirejs.env.mime_types["application/javascript"][:extensions].first
+      if ::Sprockets::VERSION.split(".", -1)[0].to_i >= 3
+        js_ext = requirejs.env.mime_types["application/javascript"][:extensions].first
+      else
+        js_ext = requirejs.env.extension_for_mime_type("application/javascript")
+      end
 
-      requirejs.env.logical_paths do |logical_path, physical_path|
-        next \
-          if !requirejs.config.asset_allowed?(logical_path)
-
+      requirejs.env.each_logical_path(requirejs.config.logical_path_patterns) do |logical_path|
         m = ::Requirejs::Rails::Config::BOWER_PATH_PATTERN.match(logical_path)
 
         if !m

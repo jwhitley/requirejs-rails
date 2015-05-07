@@ -158,12 +158,6 @@ module Requirejs
       def get_binding
         return binding()
       end
-
-      def asset_allowed?(logical_path)
-        logical_path_patterns.reduce(false) do |accum, pattern|
-          accum || !!(pattern.match(logical_path))
-        end
-      end
     end
   end
 end
