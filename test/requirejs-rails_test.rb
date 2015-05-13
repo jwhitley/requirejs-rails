@@ -110,10 +110,10 @@ class RequirejsHelperTest < ActionView::TestCase
     Rails.application.config.requirejs.delete(:build_config)
   end
 
-  def with_cdn
+  def with_cdn(protocol_relative = false)
     Rails.application.config.requirejs.user_config = {
         "paths" => {
-            "jquery" => "http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"
+            "jquery" => "#{ protocol_relative ? '' : 'http:' }//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"
         }
     }
   end
@@ -198,5 +198,14 @@ class RequirejsHelperTest < ActionView::TestCase
     ensure
       Rails.application.config.assets.digest = saved_digest
     end
+  end
+
+  test "requirejs_include_tag with protocol relative CDN asset in paths" do
+    with_cdn(true)
+
+    render text: wrap(requirejs_include_tag)
+
+    assert_select "script:last-of-type",
+                  text: Regexp.new("\\Arequire\\.config\\({.*\"paths\":{.*\"//ajax\\..*\".*}.*}\\);\\z")
   end
 end
