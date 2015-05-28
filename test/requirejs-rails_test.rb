@@ -27,6 +27,12 @@ class RequirejsRailsConfigTest < ActiveSupport::TestCase
     @cfg = Requirejs::Rails::Config.new(Rails.application)
   end
 
+  def asset_allowed?(asset_path)
+    !!@cfg.logical_path_patterns.find do |logical_path_pattern|
+      logical_path_pattern.match(asset_path)
+    end
+  end
+
   test "config accepts known loaders" do
     @cfg.loader = :almond
     assert_equal :almond, @cfg.loader
@@ -39,10 +45,10 @@ class RequirejsRailsConfigTest < ActiveSupport::TestCase
   end
 
   test "matches configured logical assets" do
-    assert_equal true, @cfg.asset_allowed?('foo.js')
-    assert_equal false, @cfg.asset_allowed?('bar.frobnitz')
-    @cfg.logical_path_patterns += [/\.frobnitz$/]
-    assert_equal true, @cfg.asset_allowed?('bar.frobnitz')
+    assert_equal true, asset_allowed?("foo.js")
+    assert_equal false, asset_allowed?("bar.frobnitz")
+    @cfg.logical_path_patterns.push(Regexp.new("\\.frobnitz\\z"))
+    assert_equal true, asset_allowed?("bar.frobnitz")
   end
 
   test "should have a default empty user_config" do
