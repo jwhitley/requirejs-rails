@@ -151,9 +151,9 @@ OS X Homebrew users can use 'brew install node'.
 
         # Is there a `paths` entry for the module?
         if !paths[module_name]
-          asset_name = Pathname.new(module_name).sub_ext(".js")
+          asset_name = Pathname.new(module_name).sub_ext(".js").to_s
         else
-          asset_name = Pathname.new(paths[module_name]).sub_ext(".js")
+          asset_name = Pathname.new(paths[module_name]).sub_ext(".js").to_s
         end
 
         asset = requirejs.env.find_asset(asset_name)

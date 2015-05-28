@@ -2,6 +2,10 @@
 
 ## requirejs-rails changelog
 
+### v0.9.8
+
+- Fix a bad regression and yank v0.9.7.
+
 ### v0.9.7
 
 - Fix a corner case where modules could appear in the build config's `paths`.
