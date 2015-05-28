@@ -2,6 +2,12 @@
 
 ## requirejs-rails changelog
 
+### v0.9.7
+
+- Fix a corner case where modules could appear in the build config's `paths`.
+- Fix regressions introduced in v0.9.6.
+- Allow protocol relative urls for CDNs in the build config's `paths` (credit @remybach).
+
 ### v0.9.6
 
 - Update `require.js` and `r.js` to `2.1.17`, and `almond.js` to `0.3.1`.
