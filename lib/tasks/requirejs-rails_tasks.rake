@@ -98,12 +98,6 @@ OS X Homebrew users can use 'brew install node'.
       original_cache = requirejs.env.cache
       requirejs.env.cache = nil
 
-      if ::Sprockets::VERSION.split(".", -1)[0].to_i >= 3
-        js_ext = requirejs.env.mime_types["application/javascript"][:extensions].first
-      else
-        js_ext = requirejs.env.extension_for_mime_type("application/javascript")
-      end
-
       requirejs.env.each_logical_path(requirejs.config.logical_path_patterns) do |logical_path|
         m = ::Requirejs::Rails::Config::BOWER_PATH_PATTERN.match(logical_path)
 
@@ -116,7 +110,7 @@ OS X Homebrew users can use 'brew install node'.
             asset.write_to(file)
           end
         else
-          bower_logical_path = Pathname.new(logical_path).dirname.sub_ext(js_ext).to_s
+          bower_logical_path = Pathname.new(logical_path).dirname.sub_ext(".js").to_s
           asset = requirejs.env.find_asset(bower_logical_path)
 
           if asset
@@ -151,8 +145,17 @@ OS X Homebrew users can use 'brew install node'.
     # Copy each built asset, identified by a named module in the
     # build config, to its Sprockets digestified name.
     task digestify_and_compress: ["requirejs:setup"] do
-      requirejs.config.build_config['modules'].each do |m|
-        asset_name = "#{requirejs.config.module_name_for(m)}.js"
+      requirejs.config.build_config["modules"].each do |m|
+        module_name = requirejs.config.module_name_for(m)
+        paths = requirejs.config.build_config["paths"] || {}
+
+        # Is there a `paths` entry for the module?
+        if !paths[module_name]
+          asset_name = Pathname.new(module_name).sub_ext(".js")
+        else
+          asset_name = Pathname.new(paths[module_name]).sub_ext(".js")
+        end
+
         asset = requirejs.env.find_asset(asset_name)
 
         built_asset_path = requirejs.config.build_dir.join(asset_name)
