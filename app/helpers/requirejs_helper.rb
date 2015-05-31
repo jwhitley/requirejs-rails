@@ -122,6 +122,6 @@ module RequirejsHelper
   end
 
   def old_sass?
-    defined?(Sass::Rails::VERSION) && Sass::Rails::VERSION[0..1] <= '4.'
+    @old_sass ||= defined?(Sass::Rails::VERSION) && Sass::Rails::VERSION[0..1] <= '4.'
   end
 end
