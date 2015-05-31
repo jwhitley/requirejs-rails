@@ -148,7 +148,7 @@ wrap: true
 The `requirejs-rails` build process uses the Asset Pipeline to assemble assets
 for the `r.js` build.  By default, assets ending in `.js`, `.html`, and `.txt`
 will be made available to the build.  If you have other asset suffixes to
-include, use the `logical_asset_filter` config setting to add them.
+include, use the `logical_path_patterns` config setting to add them.
 
 For example, if your templates all end in `.templ` like so...
 
@@ -164,7 +164,7 @@ define(function (require) {
 
 ```ruby
 # in config/application.rb
-config.requirejs.logical_asset_filter += [/\.templ$/]
+config.requirejs.logical_path_patterns += [/\.templ$/]
 ```
 
 ## Advanced features
