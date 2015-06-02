@@ -148,10 +148,11 @@ OS X Homebrew users can use 'brew install node'.
       requirejs.config.build_config["modules"].each do |m|
         module_name = requirejs.config.module_name_for(m)
         paths = requirejs.config.build_config["paths"] || {}
+        module_script_name = Pathname.new(module_name).sub_ext(".js").to_s
 
         # Is there a `paths` entry for the module?
         if !paths[module_name]
-          asset_name = Pathname.new(module_name).sub_ext(".js").to_s
+          asset_name = module_script_name
         else
           asset_name = Pathname.new(paths[module_name]).sub_ext(".js").to_s
         end
@@ -165,7 +166,7 @@ OS X Homebrew users can use 'brew install node'.
         # Ensure that the parent directory `a/b` for modules with names like `a/b/c` exist.
         digest_asset_path.dirname.mkpath
 
-        requirejs.manifest[asset_name] = digest_name
+        requirejs.manifest[module_script_name] = digest_name
         FileUtils.cp built_asset_path, digest_asset_path
 
         # Create the compressed versions
