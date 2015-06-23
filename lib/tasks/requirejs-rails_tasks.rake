@@ -110,7 +110,7 @@ OS X Homebrew users can use 'brew install node'.
             asset.write_to(file)
           end
         else
-          bower_logical_path = Pathname.new(logical_path).dirname.sub_ext(".js").to_s
+          bower_logical_path = "#{Pathname.new(logical_path).dirname.to_s}.js"
           asset = requirejs.env.find_asset(bower_logical_path)
 
           if asset
@@ -148,13 +148,13 @@ OS X Homebrew users can use 'brew install node'.
       requirejs.config.build_config["modules"].each do |m|
         module_name = requirejs.config.module_name_for(m)
         paths = requirejs.config.build_config["paths"] || {}
-        module_script_name = Pathname.new(module_name).sub_ext(".js").to_s
+        module_script_name = "#{module_name}.js"
 
         # Is there a `paths` entry for the module?
         if !paths[module_name]
           asset_name = module_script_name
         else
-          asset_name = Pathname.new(paths[module_name]).sub_ext(".js").to_s
+          asset_name = "#{paths[module_name]}.js"
         end
 
         asset = requirejs.env.find_asset(asset_name)
