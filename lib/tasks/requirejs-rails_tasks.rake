@@ -160,7 +160,11 @@ OS X Homebrew users can use 'brew install node'.
         asset = requirejs.env.find_asset(asset_name)
 
         built_asset_path = requirejs.config.build_dir.join(asset_name)
-        digest_name = asset.digest_path
+
+        file_digest = ::Rails.application.assets.file_digest(built_asset_path)
+        hex_digest = Sprockets::DigestUtils.pack_hexdigest(file_digest)
+        digest_name = asset.logical_path.sub(/\.(\w+)$/) { |ext| "-#{hex_digest}#{ext}" }
+
         digest_asset_path = requirejs.config.target_dir + digest_name
 
         # Ensure that the parent directory `a/b` for modules with names like `a/b/c` exist.
