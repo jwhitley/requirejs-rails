@@ -59,7 +59,7 @@ module Requirejs
             rjs_digests = YAML.load(ERB.new(File.new(config.requirejs.manifest_path).read).result)
             rails_manifest.assets.merge!(rjs_digests)
             ActionView::Base.instance_eval do
-              self.assets_manifest = rails_manifest
+              # self.assets_manifest = rails_manifest
             end
           end
         end
