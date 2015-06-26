@@ -50,7 +50,7 @@ module Requirejs
         end
       end
 
-      if ::Rails::VERSION::MAJOR >= 4
+      if ::Rails::VERSION::MAJOR >= 4 && defined?(ActionView::Base) && ActionView::Base.respond_to?(:assets_manifest)
         config.after_initialize do |app|
           config = app.config
           rails_manifest_path = File.join(app.root, 'public', config.assets.prefix)
@@ -59,7 +59,7 @@ module Requirejs
             rjs_digests = YAML.load(ERB.new(File.new(config.requirejs.manifest_path).read).result)
             rails_manifest.assets.merge!(rjs_digests)
             ActionView::Base.instance_eval do
-              # self.assets_manifest = rails_manifest
+              self.assets_manifest = rails_manifest
             end
           end
         end
