@@ -97,13 +97,19 @@ OS X Homebrew users can use 'brew install node'.
 
       original_cache = requirejs.env.cache
       requirejs.env.cache = nil
-      binding.pry
 
       requirejs.env.each_logical_path(requirejs.config.logical_path_patterns) do |logical_path|
         m = ::Requirejs::Rails::Config::BOWER_PATH_PATTERN.match(logical_path)
         if !m
+          
+          # if file extension is .es6, change logical path extension to .js
+          check_extension = logical_path.split(".")
+          if check_extension[check_extension.length-1] == "es6"
+            check_extension[check_extension.length-1] = "js"
+            logical_path = check_extension.join(".")
+          end
+          
           asset = requirejs.env.find_asset(logical_path)
-          binding.pry
           if asset
             file = requirejs.config.source_dir.join(asset.logical_path)
             file.dirname.mkpath
