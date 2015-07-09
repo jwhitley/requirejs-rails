@@ -100,7 +100,7 @@ OS X Homebrew users can use 'brew install node'.
 
       requirejs.env.each_logical_path(requirejs.config.logical_path_patterns) do |logical_path|
         m = ::Requirejs::Rails::Config::BOWER_PATH_PATTERN.match(logical_path)
-
+        binding.pry
         if !m
           asset = requirejs.env.find_asset(logical_path)
 
