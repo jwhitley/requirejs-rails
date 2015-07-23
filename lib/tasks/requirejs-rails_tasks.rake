@@ -32,6 +32,7 @@ namespace :requirejs do
   end
 
   requirejs = ActiveSupport::OrderedOptions.new
+  path_extension_pattern = Regexp.new("\\.(\\w+)\\z")
 
   task clean: ["requirejs:setup"] do
     FileUtils.remove_entry_secure(requirejs.config.source_dir, true)
@@ -71,17 +72,14 @@ OS X Homebrew users can use 'brew install node'.
   end
 
   namespace :precompile do
-    task all: ["requirejs:precompile:prepare_source",
-               "requirejs:precompile:generate_rjs_driver",
-               "requirejs:precompile:run_rjs",
-               "requirejs:precompile:digestify_and_compress"]
+    task all: ["requirejs:precompile:digestify_and_compress"]
 
     # Invoke another ruby process if we're called from inside
     # assets:precompile so we don't clobber the environment
     #
     # We depend on test_node here so we'll fail early and hard if node
     # isn't available.
-    task external: ["requirejs:test_node"] do
+    task :external do
       ruby_rake_task "requirejs:precompile:all"
     end
 
@@ -137,7 +135,9 @@ OS X Homebrew users can use 'brew install node'.
     end
 
     task run_rjs: ["requirejs:setup",
-                   "requirejs:test_node"] do
+                   "requirejs:test_node",
+                   "requirejs:precompile:prepare_source",
+                   "requirejs:precompile:generate_rjs_driver"] do
       requirejs.config.build_dir.mkpath
       requirejs.config.target_dir.mkpath
       requirejs.config.driver_path.dirname.mkpath
@@ -150,7 +150,7 @@ OS X Homebrew users can use 'brew install node'.
 
     # Copy each built asset, identified by a named module in the
     # build config, to its Sprockets digestified name.
-    task digestify_and_compress: ["requirejs:setup"] do
+    task digestify_and_compress: ["requirejs:precompile:run_rjs"] do
       requirejs.config.build_config["modules"].each do |m|
         module_name = requirejs.config.module_name_for(m)
         paths = requirejs.config.build_config["paths"] || {}
@@ -166,7 +166,12 @@ OS X Homebrew users can use 'brew install node'.
         asset = requirejs.env.find_asset(asset_name)
 
         built_asset_path = requirejs.config.build_dir.join(asset_name)
-        digest_name = asset.digest_path
+
+        # Compute the digest based on the contents of the compiled file, *not* on the contents of the RequireJS module.
+        file_digest = ::Rails.application.assets.file_digest(built_asset_path)
+        hex_digest = Sprockets::DigestUtils.pack_hexdigest(file_digest)
+        digest_name = asset.logical_path.gsub(path_extension_pattern) { |ext| "-#{hex_digest}#{ext}" }
+
         digest_asset_path = requirejs.config.target_dir + digest_name
 
         # Ensure that the parent directory `a/b` for modules with names like `a/b/c` exist.

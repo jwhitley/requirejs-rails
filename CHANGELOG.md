@@ -2,6 +2,11 @@
 
 ## requirejs-rails changelog
 
+### v0.9.9
+
+- Fix an asset digesting regression in #238 (credit @jonhyman).
+- Update `require.js` and `r.js` to `2.1.19`.
+
 ### v0.9.8
 
 - Fix a bad regression and yank v0.9.7.
