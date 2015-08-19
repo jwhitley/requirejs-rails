@@ -79,7 +79,7 @@ module RequirejsHelper
 
   def javascript_path(source, options = {})
     if defined?(super)
-      super
+      old_sass? ? super(source) : super
     else
       view_proxy.javascript_path(source, options)
     end
@@ -119,5 +119,9 @@ module RequirejsHelper
 
   def view_proxy
     @view_proxy ||= Requirejs::Rails::ViewProxy.new
+  end
+
+  def old_sass?
+    @old_sass ||= defined?(Sass::Rails::VERSION) && Sass::Rails::VERSION[0..1] < '4.'
   end
 end
