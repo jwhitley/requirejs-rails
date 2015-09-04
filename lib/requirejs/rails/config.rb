@@ -16,6 +16,7 @@ module Requirejs
       LOGICAL_PATH_PATTERNS = [
           Regexp.new("\\.html\\z"),
           Regexp.new("\\.js\\z"),
+          Regexp.new("\\.es6\\z"),
           Regexp.new("\\.txt\\z"),
           BOWER_PATH_PATTERN
       ]
