@@ -2,7 +2,7 @@ var requirejs = require(<%= rjs_path.to_s.dump %>)
 var baseConfig = <%=
 cdn_pattern = Regexp.new("\\Ahttps?://")
 
-modifiedHash = build_config.select { |k, _| k != "modules" }
+modifiedHash = build_config.select { |k, _| k != "modules" && k != "onBuildRead"}
 pathsHash = modifiedHash["paths"]
 modifiedHash["dir"] = build_dir.to_s
 modifiedHash["paths"] = Hash[
@@ -13,6 +13,10 @@ modifiedHash["paths"] = Hash[
 
 JSON.pretty_generate(modifiedHash)
 %>;
+
+<% if build_config["onBuildRead"] %>
+baseConfig.onBuildRead = <%= build_config["onBuildRead"] %>
+<% end %>
 
 baseConfig.modules = [
 <% build_config["modules"].each do |m| %>
