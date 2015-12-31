@@ -50,7 +50,7 @@ module Requirejs
         end
       end
 
-      if ::Rails::VERSION::MAJOR >= 4
+      if ::Rails::VERSION::MAJOR >= 4 && defined?(ActionView::Base) && ActionView::Base.respond_to?(:assets_manifest)
         config.after_initialize do |app|
           config = app.config
           rails_manifest_path = File.join(app.root, 'public', config.assets.prefix)
