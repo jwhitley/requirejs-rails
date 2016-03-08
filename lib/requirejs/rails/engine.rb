@@ -36,8 +36,14 @@ module Requirejs
           end
         end
 
-        manifest_directory = config.assets.manifest || File.join(::Rails.public_path, config.assets.prefix)
-        manifest_path = File.join(manifest_directory, "rjs_manifest.yml")
+        rails_manifest_path = config.assets.manifest || File.join(::Rails.public_path, config.assets.prefix)
+
+        # NOTE: Using sprockets >= 3.x the rails_manifest_path is not a directory
+        #       but a file. That's why we get the `dirname` if the given
+        #       `rails_manifest_path` is a file.
+        rails_manifest_path = File.dirname(rails_manifest_path) if File.file?(rails_manifest_path)
+
+        manifest_path = File.join(rails_manifest_path, 'rjs_manifest.yml')
         config.requirejs.manifest_path = Pathname.new(manifest_path)
       end
 
@@ -53,7 +59,10 @@ module Requirejs
       if ::Rails::VERSION::MAJOR >= 4
         config.after_initialize do |app|
           config = app.config
-          rails_manifest_path = File.join(app.root, 'public', config.assets.prefix)
+
+          # NOTE: Not DRY -> extract
+          rails_manifest_path = config.assets.manifest ||= File.join(::Rails.public_path, config.assets.prefix)
+
           rails_manifest = ::Sprockets::Manifest.new(app.assets, rails_manifest_path)
           if config.requirejs.manifest_path.exist? && rails_manifest
             rjs_digests = YAML.load(ERB.new(File.new(config.requirejs.manifest_path).read).result)
