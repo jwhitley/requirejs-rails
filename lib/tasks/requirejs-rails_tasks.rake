@@ -162,7 +162,7 @@ OS X Homebrew users can use 'brew install node'.
         built_asset_path = requirejs.config.build_dir.join(asset_name)
 
         # Compute the digest based on the contents of the compiled file, *not* on the contents of the RequireJS module.
-        file_digest = ::Rails.application.assets.file_digest(built_asset_path.to_s)
+        file_digest = requirejs.env.file_digest(built_asset_path.to_s)
         hex_digest = file_digest.unpack("H*").first
         digest_name = asset.logical_path.gsub(path_extension_pattern) { |ext| "-#{hex_digest}#{ext}" }
 
