@@ -49,7 +49,7 @@ namespace :requirejs do
     # sprockets hooks get executed
     _ = ActionView::Base
 
-    requirejs.env = Rails.application.assets
+    requirejs.env = Rails.application.config.assets
 
     # Preserve the original asset paths, as we'll be manipulating them later
     requirejs.env_paths = requirejs.env.paths.dup
