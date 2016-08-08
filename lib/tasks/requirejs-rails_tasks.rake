@@ -49,7 +49,9 @@ namespace :requirejs do
     # sprockets hooks get executed
     _ = ActionView::Base
 
-    requirejs.env = Rails.application.assets
+    requirejs.env = Rails.application.config.assets
+
+    requirejs.sprockets = Rails.application.assets || ::Sprockets::Railtie.build_environment(Rails.application)
 
     # Preserve the original asset paths, as we'll be manipulating them later
     requirejs.env_paths = requirejs.env.paths.dup
@@ -96,27 +98,53 @@ OS X Homebrew users can use 'brew install node'.
       original_cache = requirejs.env.cache
       requirejs.env.cache = nil
 
-      requirejs.env.each_logical_path(requirejs.config.logical_path_patterns) do |logical_path|
-        m = ::Requirejs::Rails::Config::BOWER_PATH_PATTERN.match(logical_path)
+      if ::Sprockets::VERSION.split(".").first.to_i < 3
+        # Sprockets 2.x
+        requirejs.env.each_logical_path(requirejs.config.logical_path_patterns) do |logical_path|
+          m = ::Requirejs::Rails::Config::BOWER_PATH_PATTERN.match(logical_path)
 
-        if !m
-          asset = requirejs.env.find_asset(logical_path)
+          if !m
+            asset = requirejs.env.find_asset(logical_path)
 
-          if asset
-            file = requirejs.config.source_dir.join(asset.logical_path)
-            file.dirname.mkpath
-            asset.write_to(file)
-          end
-        else
-          bower_logical_path = "#{Pathname.new(logical_path).dirname.to_s}.js"
-          asset = requirejs.env.find_asset(bower_logical_path)
+            if asset
+              file = requirejs.config.source_dir.join(asset.logical_path)
+              file.dirname.mkpath
+              asset.write_to(file)
+            end
+          else
+            bower_logical_path = "#{Pathname.new(logical_path).dirname.to_s}.js"
+            asset = requirejs.env.find_asset(bower_logical_path)
 
-          if asset
-            file = requirejs.config.source_dir.join(bower_logical_path)
-            file.dirname.mkpath
-            asset.write_to(file)
+            if asset
+              file = requirejs.config.source_dir.join(bower_logical_path)
+              file.dirname.mkpath
+              asset.write_to(file)
+            end
           end
         end
+      else
+        # Sprockets 3.x
+        requirejs.sprockets.each_file do |file|
+          begin
+            asset_uri, deps = requirejs.sprockets.resolve! file
+            asset = requirejs.sprockets.load asset_uri
+            asset_logical_path = asset.logical_path
+            if requirejs.config.logical_path_patterns.any? { |pattern| pattern.match asset_logical_path }
+              m = ::Requirejs::Rails::Config::BOWER_PATH_PATTERN.match(asset_logical_path)
+              if !m
+                target_file = requirejs.config.source_dir.join(asset_logical_path)
+                asset.write_to(target_file)
+              else
+                raise "Not supported yet"
+              end
+            end
+          rescue
+            # Ignore if precompiled assets fail.
+            # This happens for example if we stumble on a scss file that has
+            # a variable defined elsewhere.
+          end
+        end
+        
       end
 
       # Restore the original JS compressor and cache.
@@ -157,13 +185,17 @@ OS X Homebrew users can use 'brew install node'.
           asset_name = "#{paths[module_name]}.js"
         end
 
-        asset = requirejs.env.find_asset(asset_name)
+        # old Sprockets 2
+        #asset = requirejs.env.find_asset(asset_name)
+        asset = requirejs.sprockets.find_asset(asset_name)
 
         built_asset_path = requirejs.config.build_dir.join(asset_name)
 
         # Compute the digest based on the contents of the compiled file, *not* on the contents of the RequireJS module.
-        file_digest = ::Rails.application.assets.file_digest(built_asset_path.to_s)
-        hex_digest = file_digest.unpack("H*").first
+        # Old Sprockets 2
+        #file_digest = ::Rails.application.assets.file_digest(built_asset_path.to_s)
+        #hex_digest = file_digest.unpack("H*").first
+        hex_digest = requirejs.sprockets.pack_hexdigest(requirejs.sprockets.digest_class.digest(built_asset_path.to_s))
         digest_name = asset.logical_path.gsub(path_extension_pattern) { |ext| "-#{hex_digest}#{ext}" }
 
         digest_asset_path = requirejs.config.target_dir + digest_name
