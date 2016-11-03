@@ -88,14 +88,6 @@ OS X Homebrew users can use 'brew install node'.
                           "requirejs:clean"] do
       requirejs.config.source_dir.mkpath
 
-      # Save the original JS compressor and cache, which will be restored later.
-
-      original_js_compressor = requirejs.env.js_compressor
-      requirejs.env.js_compressor = false
-
-      original_cache = requirejs.env.cache
-      requirejs.env.cache = nil
-
       requirejs.env.each_logical_path(requirejs.config.logical_path_patterns) do |logical_path|
         m = ::Requirejs::Rails::Config::BOWER_PATH_PATTERN.match(logical_path)
 
@@ -118,10 +110,6 @@ OS X Homebrew users can use 'brew install node'.
           end
         end
       end
-
-      # Restore the original JS compressor and cache.
-      requirejs.env.js_compressor = original_js_compressor
-      requirejs.env.cache = original_cache
     end
 
     task generate_rjs_driver: ["requirejs:setup"] do
@@ -162,7 +150,7 @@ OS X Homebrew users can use 'brew install node'.
         built_asset_path = requirejs.config.build_dir.join(asset_name)
 
         # Compute the digest based on the contents of the compiled file, *not* on the contents of the RequireJS module.
-        file_digest = ::Rails.application.assets.file_digest(built_asset_path.to_s)
+        file_digest = requirejs.env.file_digest(built_asset_path.to_s)
         hex_digest = file_digest.unpack("H*").first
         digest_name = asset.logical_path.gsub(path_extension_pattern) { |ext| "-#{hex_digest}#{ext}" }
 

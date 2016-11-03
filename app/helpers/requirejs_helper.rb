@@ -1,13 +1,14 @@
 require "requirejs/error"
-require "requirejs/rails/view_proxy"
+require "requirejs/rails/view"
 
 module RequirejsHelper
-  if defined?(Sass::Rails::VERSION)
-    sass_rails_version_pattern = Regexp.new("\\A(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\z")
+  def self.included(clazz)
+    clazz.class_eval do
+      extend Forwardable
 
-    SASS_RAILS_3_COMPATIBILITY = sass_rails_version_pattern.match(Sass::Rails::VERSION)[1].to_i < 4
-  else
-    SASS_RAILS_3_COMPATIBILITY = false
+      # Delegate all JavaScript path queries to the specially modified internal view.
+      def_delegators :view, :javascript_path
+    end
   end
 
   # EXPERIMENTAL: Additional priority settings appended to
@@ -85,26 +86,6 @@ module RequirejsHelper
     end
   end
 
-  def javascript_path(source, options = {})
-    if defined?(super)
-      if !SASS_RAILS_3_COMPATIBILITY
-        super
-      else
-        super(source)
-      end
-    else
-      view_proxy.javascript_path(source, options)
-    end
-  end
-
-  def content_tag(name, content_or_options_with_block = nil, options = nil, escape = true, &block)
-    if defined?(super) && respond_to?(:output_buffer) && respond_to?(:output_buffer=)
-      super
-    else
-      view_proxy.content_tag(name, content_or_options_with_block, options, escape, &block)
-    end
-  end
-
   private
 
   def once_guard
@@ -129,7 +110,7 @@ module RequirejsHelper
     [asset_host, Rails.application.config.relative_url_root, Rails.application.config.assets.prefix].join
   end
 
-  def view_proxy
-    @view_proxy ||= Requirejs::Rails::ViewProxy.new
+  def view
+    @view ||= Requirejs::Rails::View.new
   end
 end
