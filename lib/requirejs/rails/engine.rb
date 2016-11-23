@@ -36,9 +36,12 @@ module Requirejs
           end
         end
 
-        manifest_directory = config.assets.manifest || File.join(::Rails.public_path, config.assets.prefix)
+        target_dir = File.join(::Rails.public_path, config.assets.prefix)
+        manifest_directory = config.assets.manifest || target_dir
         manifest_path = File.join(manifest_directory, "rjs_manifest.yml")
+
         config.requirejs.manifest_path = Pathname.new(manifest_path)
+        config.requirejs.target_dir = Pathname.new(target_dir)
       end
 
       ### Initializers
