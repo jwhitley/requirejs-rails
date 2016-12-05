@@ -54,16 +54,14 @@ module Requirejs
       # values.
       if defined?(Rake) && Rake.application.top_level_tasks.include?("requirejs:precompile:all")
         initializer "requirejs.modify_environment_config", after: "load_environment_config", group: :all do |app|
-          app.configure do
-            # If we don't set this to true, sprockets-rails will assign `Rails.application.assets` to `nil`.
-            config.assets.compile = true
+          # If we don't set this to true, sprockets-rails will assign `Rails.application.assets` to `nil`.
+          app.config.assets.compile = true
 
-            # Don't compress JavaScripts fed into the r.js optimizer.
-            config.assets.js_compressor = false
+          # Don't compress JavaScripts fed into the r.js optimizer.
+          app.config.assets.js_compressor = false
 
-            # Don't use any cache to retrieve assets.
-            config.assets.cache = nil
-          end
+          # Don't use any cache to retrieve assets.
+          app.config.assets.cache = nil
         end
       end
 
