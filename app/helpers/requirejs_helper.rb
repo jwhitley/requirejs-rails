@@ -68,7 +68,7 @@ module RequirejsHelper
           run_config['paths'] = paths
         end
 
-        run_config['baseUrl'] = base_url(name)
+        run_config['baseUrl'] ||= base_url(name)
 
         html.concat(content_tag(:script) do
           script = "require.config(#{run_config.to_json});"
