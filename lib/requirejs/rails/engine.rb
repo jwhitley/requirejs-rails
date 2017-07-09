@@ -75,8 +75,8 @@ module Requirejs
       if ::Rails::VERSION::MAJOR >= 4
         config.after_initialize do |app|
           config = app.config
-          rails_manifest = ::Sprockets::Manifest.new(app.assets, config.assets.manifest)
-          if config.requirejs.manifest_path.exist? && rails_manifest
+          if config.requirejs.manifest_path.exist?
+            rails_manifest = ::Sprockets::Railtie.build_manifest(app)
             rjs_digests = YAML.load(ERB.new(File.new(config.requirejs.manifest_path).read).result)
             rails_manifest.assets.merge!(rjs_digests)
             ActionView::Base.instance_eval do
