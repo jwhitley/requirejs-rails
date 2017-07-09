@@ -99,7 +99,7 @@ module Requirejs
         uglify
         uglify2
         useStrict
-        wrap
+        wrapShim
       }
       end
 
@@ -144,6 +144,9 @@ module Requirejs
         if url = cfg.delete('baseUrl')
           raise Requirejs::ConfigError, "baseUrl is not needed or permitted in the configuration"
         end
+        # delete any cached configs, will be lazily resolved
+        self.delete(:build_config)
+        self.delete(:run_config)
         self[:user_config] = cfg
       end
 
