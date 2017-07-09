@@ -49,26 +49,39 @@ module RequirejsHelper
         end
 
         if Rails.application.config.assets.digest
-          modules = requirejs.build_config['modules'].map { |m| requirejs.module_name_for m }
+          assets_precompiled = !Rails.application.config.assets.compile
+          modules = requirejs.build_config["modules"].map {|m| requirejs.module_name_for m}
+          user_paths = requirejs.build_config["paths"] || {}
 
           # Generate digestified paths from the modules spec
           paths = {}
-          modules.each { |m| paths[m] = javascript_path(m).sub /\.js$/, '' }
 
-          if run_config.has_key? 'paths'
+          modules.each do |module_name|
+            script_path = if !assets_precompiled
+              # If modules haven't been precompiled, search for them based on their user-defined paths before using the
+              # module name.
+              user_paths[module_name] || module_name
+            else
+              # If modules have been precompiled, the script path is just the module name.
+              module_name
+            end
+
+            paths[module_name] = javascript_path(script_path).gsub(/\.js$/, "")
+          end
+
+          if run_config.has_key? "paths"
             # Add paths for assets specified by full URL (on a CDN)
-            run_config['paths'].each do |k, v|
+            run_config["paths"].each do |k, v|
               paths[k] = v if v.is_a?(Array) || v =~ /^(https?:)?\/\//
-
             end
           end
 
           # Override user paths, whose mappings are only relevant in dev mode
           # and in the build_config.
-          run_config['paths'] = paths
+          run_config["paths"] = paths
         end
 
-        run_config['baseUrl'] = base_url(name)
+        run_config["baseUrl"] = base_url(name)
 
         html.concat(content_tag(:script) do
           script = "require.config(#{run_config.to_json});"
