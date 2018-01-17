@@ -2,6 +2,12 @@
 
 ## requirejs-rails changelog
 
+### v1.0.1
+
+
+- Update `require.js` and `r.js` to `2.3.5`, and `almond.js` to `0.3.3`.
+- Add `wrapShim` to `build_config_whitelist`.
+
 ### v1.0.0
 
 - Update `require.js` and `r.js` to `2.1.22`.
