@@ -29,7 +29,7 @@ module RequirejsHelper
 
     once_guard do
       rjs_attributes = {
-          src: javascript_path("require")
+          src: path_to_javascript("require")
       }
 
       rjs_attributes = rjs_attributes.merge(Hash[block.call(controller).map do |key, value|
@@ -66,7 +66,7 @@ module RequirejsHelper
               module_name
             end
 
-            paths[module_name] = javascript_path(script_path).gsub(/\.js$/, "")
+            paths[module_name] = path_to_javascript(script_path).gsub(/\.js$/, "")
           end
 
           if run_config.has_key? "paths"
