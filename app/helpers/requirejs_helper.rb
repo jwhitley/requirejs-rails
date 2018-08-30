@@ -29,7 +29,7 @@ module RequirejsHelper
 
     once_guard do
       rjs_attributes = {
-          src: javascript_path("require")
+          src: [host_url, javascript_path("require")].join
       }
 
       rjs_attributes = rjs_attributes.merge(Hash[block.call(controller).map do |key, value|
@@ -66,7 +66,13 @@ module RequirejsHelper
               module_name
             end
 
-            paths[module_name] = javascript_path(script_path).gsub(/\.js$/, "")
+            normalized_script_path = javascript_path(script_path).gsub(/\.js$/, "")
+
+            if !host_url
+              paths[module_name] = normalized_script_path
+            else
+              paths[module_name] = [host_url, normalized_script_path].join
+            end
           end
 
           if run_config.has_key? "paths"
@@ -81,7 +87,7 @@ module RequirejsHelper
           run_config["paths"] = paths
         end
 
-        run_config["baseUrl"] = base_url(name)
+        run_config["baseUrl"] = [host_url, Rails.application.config.assets.prefix].join
 
         html.concat(content_tag(:script) do
           script = "require.config(#{run_config.to_json});"
@@ -113,14 +119,20 @@ module RequirejsHelper
   end
 
   def almond_include_tag(name, &block)
-    content_tag(:script, "", src: javascript_path(name))
+    content_tag(:script, "", src: [host_url, javascript_path(name)].join)
   end
 
-  def base_url(js_asset)
-    js_asset_path = javascript_path(js_asset)
-    uri = URI.parse(js_asset_path)
-    asset_host = uri.host && js_asset_path.sub(uri.request_uri, '')
-    [asset_host, Rails.application.config.relative_url_root, Rails.application.config.assets.prefix].join
+  # Retrieve where the assets are hosted. Assume the root path if `nil`.
+  def host_url
+    config = Rails.application.config
+    action_controller_config = config.action_controller
+    asset_host = action_controller_config.asset_host
+
+    @host_url ||= if !asset_host
+      action_controller_config.relative_url_root
+    else
+      asset_host
+    end
   end
 
   def view
