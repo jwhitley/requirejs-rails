@@ -170,7 +170,10 @@ OS X Homebrew users can use 'brew install node'.
         end
         FileUtils.cp "#{built_asset_path}.gz", "#{digest_asset_path}.gz"
 
-        requirejs.config.manifest_path.open('wb') do |f|
+        manifest_path = requirejs.config.manifest_path
+        manifest_path.dirname.mkpath
+
+        manifest_path.open('wb') do |f|
           YAML.dump(requirejs.manifest, f)
         end
       end
