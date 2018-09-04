@@ -44,6 +44,9 @@ module Requirejs
 
         manifest_path = File.join(manifest_directory, "rjs_manifest.yml")
         config.requirejs.manifest_path = Pathname.new(manifest_path)
+
+        config.requirejs.target_dir ||= app.root + "public" +
+            Pathname.new(config.assets.prefix).relative_path_from(Pathname.new("/"))
       end
 
       ### Initializers
@@ -100,14 +103,14 @@ module Requirejs
       # config parameters.
       def self.process_user_config_file(app, config)
         config_path = Pathname.new(app.paths["config"].first)
-        config.requirejs.user_config_file = config_path+'requirejs.yml'
+        config.requirejs.user_config_file = config_path + 'requirejs.yml'
 
         yaml_file_contents = nil
         if config.requirejs.user_config_file.exist?
           yaml_file_contents = config.requirejs.user_config_file.read
         else
           # if requirejs.yml doesn't exist, look for requirejs.yml.erb and process it as an erb
-          config.requirejs.user_config_file = config_path+'requirejs.yml.erb'
+          config.requirejs.user_config_file = config_path + 'requirejs.yml.erb'
 
           if config.requirejs.user_config_file.exist?
             yaml_file_contents = ERB.new(config.requirejs.user_config_file.read).result

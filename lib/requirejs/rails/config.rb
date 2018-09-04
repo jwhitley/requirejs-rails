@@ -28,16 +28,20 @@ module Requirejs
         self.logical_path_patterns = LOGICAL_PATH_PATTERNS
 
         self.tmp_dir = application.root + 'tmp'
-        self.bin_dir = Pathname.new(__FILE__+'/../../../../bin').cleanpath
+        self.bin_dir = Pathname.new(__FILE__ + '/../../../../bin').cleanpath
 
         self.source_dir = self.tmp_dir.join("requirejs/src")
         self.build_dir = self.tmp_dir.join("requirejs/dst")
-        self.target_dir = application.root + 'public/assets'
-        self.rjs_path = self.bin_dir+'r.js'
+
+        # This will be instantiated in the engine's `before_initialize` hook, because its default value is derived from
+        # the app's configuration.
+        self.target_dir = nil
+
+        self.rjs_path = self.bin_dir + 'r.js'
 
         self.loader = :requirejs
 
-        self.driver_template_path = Pathname.new(__FILE__+'/../rjs_driver.js.erb').cleanpath
+        self.driver_template_path = Pathname.new(__FILE__ + '/../rjs_driver.js.erb').cleanpath
         self.driver_path = self.tmp_dir.join("requirejs/rjs_driver.js")
 
         self.user_config = {}
@@ -117,17 +121,17 @@ module Requirejs
                                                       "modules" => [{'name' => 'application'}]
           self[:build_config].merge!(self.user_config).slice!(*self.build_config_whitelist)
           case self.loader
-            when :requirejs
-              # nothing to do
-            when :almond
-              mods = self[:build_config]['modules']
-              unless mods.length == 1
-                raise Requirejs::ConfigError, "Almond build requires exactly one module, config has #{mods.length}."
-              end
-              mod = mods[0]
-              name = mod['name']
-              mod['name'] = 'almond'
-              mod['include'] = name
+          when :requirejs
+            # nothing to do
+          when :almond
+            mods = self[:build_config]['modules']
+            unless mods.length == 1
+              raise Requirejs::ConfigError, "Almond build requires exactly one module, config has #{mods.length}."
+            end
+            mod = mods[0]
+            name = mod['name']
+            mod['name'] = 'almond'
+            mod['include'] = name
           end
         end
         self[:build_config]
@@ -150,10 +154,10 @@ module Requirejs
 
       def module_name_for(mod)
         case self.loader
-          when :almond
-            return mod['include']
-          when :requirejs
-            return mod['name']
+        when :almond
+          return mod['include']
+        when :requirejs
+          return mod['name']
         end
       end
 
