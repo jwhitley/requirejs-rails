@@ -86,6 +86,11 @@ module Requirejs
               self.assets_manifest = rails_manifest
             end
           end
+
+          # This allows requirejs-rails to serve up modules by their undigestified asset paths.
+          Requirejs::Rails::View.instance_eval do
+            self.check_precompiled_asset = false
+          end
         end
       else
         initializer "requirejs.manifest", :after => "sprockets.environment" do |app|
