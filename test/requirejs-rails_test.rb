@@ -139,6 +139,7 @@ class RequirejsHelperTest < ActionView::TestCase
     render text: wrap(requirejs_include_tag("application"))
 
     assert_select "script:first-of-type[src=\"/javascripts/require.js\"]", count: 1
+    assert_select "script:last-of-type[data-main]", count: 1
   end
 
   test "requirejs_include_tag_with_block" do
