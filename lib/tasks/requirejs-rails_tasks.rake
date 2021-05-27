@@ -50,6 +50,8 @@ namespace :requirejs do
     _ = ActionView::Base
 
     requirejs.env = Rails.application.assets
+    # for build assets if the compile_assets is false in the current environment
+    requirejs.env ||= Sprockets::Railtie.build_environment(Rails.application, true)
 
     # Preserve the original asset paths, as we'll be manipulating them later
     requirejs.env_paths = requirejs.env.paths.dup
