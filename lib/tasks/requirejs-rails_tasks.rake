@@ -188,4 +188,4 @@ OS X Homebrew users can use 'brew install node'.
   end
 end
 
-task "assets:precompile" => ["requirejs:precompile:all"]
+task "assets:precompile" => ["requirejs:precompile:external"]
